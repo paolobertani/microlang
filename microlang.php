@@ -516,7 +516,7 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
         // If Then [Else]
 
         if( ! $done && ( $tn === 6 || $tn === 8 ) && $t1t === 'keyword' && $t1s === 'if' && microlang_vsn( $t2t, $t4t ) &&
-           $t3t === 'keyword' && ( $t3s === '==' || $t3s === '=' || $t3s === '!=' || $t3s === '>' || $t3s === '<' )  &&
+           $t3t === 'keyword' && ( $t3s === '==' || $t3s === '=' || $t3s === '!=' || $t3s === '>' || $t3s === '<' || $t3s === '>=' || $t3s === '<=' )  &&
                $t5t === 'keyword' && $t5s === 'then' && $t6t === 'variable' )
         {
             if( $tn === 8 )
