@@ -49,6 +49,16 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
     $labels = [];
     $stack = [];
 
+    if( ! isset( $vars ) )
+    {
+        $vars = [];
+    }
+
+    if( ! is_array( $vars ) )
+    {
+        return "Input data provided is not array";
+    }
+
 
     // explode code
 
