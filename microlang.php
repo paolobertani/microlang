@@ -44,6 +44,8 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
         'if', 'then', 'else', '==', '!=', '>', '<', '>=', '<='
     ];
 
+    $max_str_len = 1024*1024;
+
     $labels = [];
     $stack = [];
 
@@ -362,6 +364,8 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
 
             $vars[$t1s] = str_replace( $t5v, $t6v, $t4v );
 
+            if( mb_strlen( $vars[$t1s] ) > $max_str_len ) return "String too long: $y1b";
+
             $done = true;
         }
 
@@ -445,10 +449,12 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
             if( is_string( $t3v ) && is_string( $t5v ) )
             {
                 $vars[$t1s] = $t3v . $t5v;
+                if( mb_strlen( $vars[$t1s] ) > $max_str_len ) return "String too long: $y1b";
             }
             elseif( is_int( $t3v ) && is_int( $t5v ) )
             {
                 $vars[$t1s] = $t3v + $t5v;
+                if( $vars[$t1s] > PHP_INT_MAX || $vars[$t1s] < PHP_INT_MIN ) return "Overflow: $y1b";
             }
             else return "Addends must be of the same type: $y1b";
 
@@ -464,17 +470,21 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
 
             $vars[$t1s] = $t3v - $t5v;
 
+            if( $vars[$t1s] > PHP_INT_MAX || $vars[$t1s] < PHP_INT_MIN ) return "Overflow: $y1b";
+
             $done = true;
         }
 
 
-        // - Mult
+        // * Mult
 
         if( ! $done && $tn === 5 && $t1t === 'variable' && $t2t === 'keyword' && $t2s === '=' && $t4t === 'keyword' && $t4s === '*' && microlang_vsn( $t3t, $t5t ) )
         {
             $err = microlang_chk( "NN", $y1b, $t3s, $t3v, $t5s, $t5v ); if( $err !== '' ) return $err;
 
             $vars[$t1s] = $t3v * $t5v;
+
+            if( $vars[$t1s] > PHP_INT_MAX || $vars[$t1s] < PHP_INT_MIN ) return "Overflow: $y1b";
 
             $done = true;
         }
