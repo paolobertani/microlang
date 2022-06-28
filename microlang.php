@@ -3,7 +3,7 @@
 //
 // microlang.php
 //
-// version 1.0
+// version 1.1
 //
 // copyright 2022 Paolo Bertani
 //
@@ -316,12 +316,9 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
 
         // Substring
 
-        if( ! $done && $tn === 6 && $t1t === 'variable' && $t2t === 'keyword' && $t2s === '=' && $t3t === 'keyword' && $t3s === 'substring' &&
-            ( $t4t === 'variable' || $t4t === 'string' ) && ( $t5t === 'variable' || $t5t === 'number' ) && ( $t6t === 'variable' || $t6t === 'number' ) )
+        if( ! $done && $tn === 6 && $t1t === 'variable' && $t2t === 'keyword' && $t2s === '=' && $t3t === 'keyword' && $t3s === 'substring' && microlang_vsn( $t4t, $t5t, $t6t ) )
         {
-            if( $t4v === null ) return "Undefined variable $t4s: $y1b";
-            if( $t5v === null ) return "Undefined variable $t5s: $y1b";
-            if( $t6v === null ) return "Undefined variable $t6s: $y1b";
+            $err = microlang_chk( "SNN", $y1b, $t4s, $t4v, $t5s, $t5v, $t6s, $t6v ); if( $err !== '' ) return $err;
 
             $vars[$t1s] = mb_substr( $t4v, $t5v, $t6v );
 
@@ -331,11 +328,9 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
 
         // Position
 
-        if( ! $done && $tn === 5 && $t1t === 'variable' && $t2t === 'keyword' && $t2s === '=' && $t3t === 'keyword' && $t3s === 'position' &&
-            ( $t4t === 'variable' || $t4t === 'string' ) && ( $t5t === 'variable' || $t5t === 'string' ) )
+        if( ! $done && $tn === 5 && $t1t === 'variable' && $t2t === 'keyword' && $t2s === '=' && $t3t === 'keyword' && $t3s === 'position' && microlang_vsn( $t4t, $t5t ) )
         {
-            if( $t4v === null ) return "Undefined variable $t4s: $y1b";
-            if( $t5v === null ) return "Undefined variable $t5s: $y1b";
+            $err = microlang_chk( "SS", $y1b, $t4s, $t4v, $t5s, $t5v ); if( $err !== '' ) return $err;
 
             $vars[$t1s] = mb_strpos( $t4v, $t5v );
 
@@ -347,12 +342,9 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
 
         // Replace
 
-        if( ! $done && $tn === 6 && $t1t === 'variable' && $t2t === 'keyword' && $t2s === '=' && $t3t === 'keyword' && $t3s === 'replace' &&
-            ( $t4t === 'variable' || $t4t === 'string' ) && ( $t5t === 'variable' || $t5t === 'string' ) && ( $t6t === 'variable' || $t6t === 'string' ) )
+        if( ! $done && $tn === 6 && $t1t === 'variable' && $t2t === 'keyword' && $t2s === '=' && $t3t === 'keyword' && $t3s === 'replace' && microlang_vsn( $t4t, $t5t ) )
         {
-            if( $t4v === null ) return "Undefined variable $t4s: $y1b";
-            if( $t5v === null ) return "Undefined variable $t5s: $y1b";
-            if( $t6v === null ) return "Undefined variable $t6s: $y1b";
+            $err = microlang_chk( "SSS", $y1b, $t4s, $t4v, $t5s, $t5v, $t6s, $t6v ); if( $err !== '' ) return $err;
 
             $vars[$t1s] = str_replace( $t5v, $t6v, $t4v );
 
@@ -362,12 +354,9 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
 
         // Between
 
-        if( ! $done && $tn === 6 && $t1t === 'variable' && $t2t === 'keyword' && $t2s === '=' && $t3t === 'keyword' && $t3s === 'between' &&
-            ( $t4t === 'variable' || $t4t === 'string' ) && ( $t5t === 'variable' || $t5t === 'string' ) && ( $t6t === 'variable' || $t6t === 'string' ) )
+        if( ! $done && $tn === 6 && $t1t === 'variable' && $t2t === 'keyword' && $t2s === '=' && $t3t === 'keyword' && $t3s === 'between' && microlang_vsn( $t4t, $t5t, $t6t ) )
         {
-            if( $t4v === null ) return "Undefined variable $t4s: $y1b";
-            if( $t5v === null ) return "Undefined variable $t5s: $y1b";
-            if( $t6v === null ) return "Undefined variable $t6s: $y1b";
+            $err = microlang_chk( "SSS", $y1b, $t4s, $t4v, $t5s, $t5v, $t6s, $t6v ); if( $err !== '' ) return $err;
 
             $i1 = mb_strpos( $t4v, $t5v );
             $i2 = mb_strpos( $t4v, $t6v );
@@ -387,10 +376,9 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
 
         // Len
 
-        if( ! $done && $tn === 4 && $t1t === 'variable' && $t2t === 'keyword' && $t2s === '=' && $t3t === 'keyword' && $t3s === 'len' &&
-            ( $t4t === 'variable' || $t4t === 'string' || $t4t === 'number' ) )
+        if( ! $done && $tn === 4 && $t1t === 'variable' && $t2t === 'keyword' && $t2s === '=' && $t3t === 'keyword' && $t3s === 'len' && microlang_vsn( $t4t ) )
         {
-            if( $t4v === null ) return "Undefined variable $t4s: $y1b";
+            $err = microlang_chk( "S", $y1b, $t4s, $t4v ); if( $err !== '' ) return $err;
 
             $vars[$t1s] = mb_strlen( $t4v );
 
@@ -400,10 +388,9 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
 
         // Typeof
 
-        if( ! $done && $tn === 4 && $t1t === 'variable' && $t2t === 'keyword' && $t2s === '=' && $t3t === 'keyword' && $t3s === 'typeof' &&
-            ( $t4t === 'variable' || $t4t === 'string' || $t4t === 'number' ) )
+        if( ! $done && $tn === 4 && $t1t === 'variable' && $t2t === 'keyword' && $t2s === '=' && $t3t === 'keyword' && $t3s === 'typeof' && microlang_vsn( $t4t ) )
         {
-            if( $t4v === null ) return "Undefined variable $t4s: $y1b";
+            $err = microlang_chk( "X", $y1b, $t4s, $t4v ); if( $err !== '' ) return $err;
 
             $vars[$t1s] = is_string( $t4v ) ? 'string' : 'number';
 
@@ -413,10 +400,9 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
 
         // Int
 
-        if( ! $done && $tn === 4 && $t1t === 'variable' && $t2t === 'keyword' && $t2s === '=' && $t3t === 'keyword' && $t3s === 'int' &&
-            ( $t4t === 'variable' || $t4t === 'string' ) )
+        if( ! $done && $tn === 4 && $t1t === 'variable' && $t2t === 'keyword' && $t2s === '=' && $t3t === 'keyword' && $t3s === 'int' && microlang_vsn( $t4t ) )
         {
-            if( $t4v === null ) return "Undefined variable $t4s: $y1b";
+            $err = microlang_chk( "S", $y1b, $t4s, $t4v ); if( $err !== '' ) return $err;
 
             $vars[$t1s] = intval( $t4v );
 
@@ -426,10 +412,9 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
 
         // String
 
-        if( ! $done && $tn === 4 && $t1t === 'variable' && $t2t === 'keyword' && $t2s === '=' && $t3t === 'keyword' && $t3s === 'string' &&
-            ( $t4t === 'variable' || $t4t === 'string' ) )
+        if( ! $done && $tn === 4 && $t1t === 'variable' && $t2t === 'keyword' && $t2s === '=' && $t3t === 'keyword' && $t3s === 'string' && microlang_vsn( $t4t ) )
         {
-            if( $t4v === null ) return "Undefined variable $t4s: $y1b";
+            $err = microlang_chk( "N", $y1b, $t4s, $t4v ); if( $err !== '' ) return $err;
 
             $vars[$t1s] = (string)$t4v;
 
@@ -439,20 +424,19 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
 
         // + Sum
 
-        if( ! $done && $tn === 5 && $t1t === 'variable' && $t2t === 'keyword' && $t2s === '=' &&
-            ( $t3t === 'variable' || $t3t === 'number' || $t3t === 'string' ) && $t4t === 'keyword' && $t4s === '+' && ( $t5t === 'variable' || $t5t === 'number' || $t5t === 'string' ) )
+        if( ! $done && $tn === 5 && $t1t === 'variable' && $t2t === 'keyword' && $t2s === '=' && $t4t === 'keyword' && $t4s === '+' && microlang_vsn( $t3t, $t5t ) )
         {
-            if( $t3v === null ) return "Undefined variable $t3s: $y1b";
-            if( $t5v === null ) return "Undefined variable $t5s: $y1b";
+            $err = microlang_chk( "XX", $y1b, $t3s, $t3v, $t5s, $t5v ); if( $err !== '' ) return $err;
 
-            if( is_string( $t3v ) || is_string( $t5v ) )
+            if( is_string( $t3v ) && is_string( $t5v ) )
             {
                 $vars[$t1s] = $t3v . $t5v;
             }
-            else
+            elseif( is_int( $t3v ) && is_int( $t5v ) )
             {
                 $vars[$t1s] = $t3v + $t5v;
             }
+            else return "Addends must be of the same type: $y1b";
 
             $done = true;
         }
@@ -460,11 +444,9 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
 
         // - Diff
 
-        if( ! $done && $tn === 5 && $t1t === 'variable' && $t2t === 'keyword' && $t2s === '=' &&
-            ( $t3t === 'variable' || $t3t === 'number' ) && $t4t === 'keyword' && $t4s === '-' && ( $t5t === 'variable' || $t5t === 'number' ) )
+        if( ! $done && $tn === 5 && $t1t === 'variable' && $t2t === 'keyword' && $t2s === '=' && $t4t === 'keyword' && $t4s === '-' && microlang_vsn( $t3t, $t5t ) )
         {
-            if( $t3v === null ) return "Undefined variable $t3s: $y1b";
-            if( $t5v === null ) return "Undefined variable $t5s: $y1b";
+            $err = microlang_chk( "NN", $y1b, $t3s, $t3v, $t5s, $t5v ); if( $err !== '' ) return $err;
 
             $vars[$t1s] = $t3v - $t5v;
 
@@ -474,11 +456,9 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
 
         // - Mult
 
-        if( ! $done && $tn === 5 && $t1t === 'variable' && $t2t === 'keyword' && $t2s === '=' &&
-            ( $t3t === 'variable' || $t3t === 'number' ) && $t4t === 'keyword' && $t4s === '*' && ( $t5t === 'variable' || $t5t === 'number' ) )
+        if( ! $done && $tn === 5 && $t1t === 'variable' && $t2t === 'keyword' && $t2s === '=' && $t4t === 'keyword' && $t4s === '*' && microlang_vsn( $t3t, $t5t ) )
         {
-            if( $t3v === null ) return "Undefined variable $t3s: $y1b";
-            if( $t5v === null ) return "Undefined variable $t5s: $y1b";
+            $err = microlang_chk( "NN", $y1b, $t3s, $t3v, $t5s, $t5v ); if( $err !== '' ) return $err;
 
             $vars[$t1s] = $t3v * $t5v;
 
@@ -488,11 +468,9 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
 
         // / Div
 
-        if( ! $done && $tn === 5 && $t1t === 'variable' && $t2t === 'keyword' && $t2s === '=' &&
-            ( $t3t === 'variable' || $t3t === 'number' ) && $t4t === 'keyword' && $t4s === '/' && ( $t5t === 'variable' || $t5t === 'number' ) )
+        if( ! $done && $tn === 5 && $t1t === 'variable' && $t2t === 'keyword' && $t2s === '=' && $t4t === 'keyword' && $t4s === '/' && microlang_vsn( $t3t, $t5t ) )
         {
-            if( $t3v === null ) return "Undefined variable $t3s: $y1b";
-            if( $t5v === null ) return "Undefined variable $t5s: $y1b";
+            $err = microlang_chk( "NN", $y1b, $t3s, $t3v, $t5s, $t5v ); if( $err !== '' ) return $err;
             if( $t5v == 0 ) return "Division by zero: $y1b";
 
             $vars[$t1s] = intdiv( $t3v, $t5v );
@@ -503,8 +481,8 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
 
         // If Then [Else]
 
-        if( ! $done && ( $tn === 6 || $tn === 8 ) && $t1t === 'keyword' && $t1s === 'if' && ( $t2t === 'variable' || $t2t === 'string' || $t2t === 'number' ) &&
-           $t3t === 'keyword' && ( $t3s === '==' || $t3s === '=' || $t3s === '!=' || $t3s === '>' || $t3s === '<' ) && ( $t4t === 'variable' || $t4t === 'string' || $t4t === 'number' ) &&
+        if( ! $done && ( $tn === 6 || $tn === 8 ) && $t1t === 'keyword' && $t1s === 'if' && microlang_vsn( $t2t, $t4t ) &&
+           $t3t === 'keyword' && ( $t3s === '==' || $t3s === '=' || $t3s === '!=' || $t3s === '>' || $t3s === '<' )  &&
                $t5t === 'keyword' && $t5s === 'then' && $t6t === 'variable' )
         {
             if( $tn === 8 )
@@ -515,8 +493,10 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
                 } else return "Syntax error: $y1b";
             }
 
-            if( $t2v === null ) return "Undefined variable $t2s: $y1b";
-            if( $t4v === null ) return "Undefined variable $t4s: $y1b";
+            $err = microlang_chk( "XX", $y1b, $t2s, $t2v, $t4s, $t4v ); if( $err !== '' ) return $err;
+
+            if( gettype( $t2v ) !== gettype( $t4v) ) return "Values mustbe of the same type: $y1b";
+
             if( $t6v === null ) return "Undefined label $t6s: $y1b";
             if( $tn === 8 && $t8v === null ) return "Undefined label $t8s: $y1b";
 
@@ -694,4 +674,79 @@ function microlang_label_is_valid( $lab )
         return false;
     }
     return true;
+}
+
+
+
+function microlang_vsn( $t1 = null, $t2 = null, $t3 = null, $t4 = null, $t5 = null, $t6 = null )
+{
+    if( ( $t1 === null || $t1 === 'variable' || $t1 === 'string' || $t1 === 'number' ) &&
+        ( $t2 === null || $t2 === 'variable' || $t2 === 'string' || $t2 === 'number' ) &&
+        ( $t3 === null || $t3 === 'variable' || $t3 === 'string' || $t3 === 'number' ) &&
+        ( $t4 === null || $t4 === 'variable' || $t4 === 'string' || $t4 === 'number' ) &&
+        ( $t5 === null || $t5 === 'variable' || $t5 === 'string' || $t5 === 'number' ) &&
+        ( $t6 === null || $t6 === 'variable' || $t6 === 'string' || $t6 === 'number' ) ) return true;
+    return false;
+}
+
+
+
+function microlang_chk( $types, $line, $s1 = null, $v1 = null,
+                                       $s2 = null, $v2 = null,
+                                       $s3 = null, $v3 = null,
+                                       $s4 = null, $v4 = null,
+                                       $s5 = null, $v5 = null,
+                                       $s6 = null, $v6 = null )
+{
+    $types = " $types";
+
+    if( strlen( $types ) > 1 )
+    {
+        $t = $types[1];
+        if( $v1 === null ) return "Undefined variable $s1: $line";
+        if( is_string( $v1 ) && $t === 'N' ) return "Parameter 1 must be number";
+        if( is_int( $v1 )    && $t === 'S' ) return "Parameter 1 must be string";
+    }
+
+    if( strlen( $types ) > 2 )
+    {
+        $t = $types[2];
+        if( $v2 === null ) return "Undefined variable $s2: $line";
+        if( is_string( $v2 ) && $t === 'N' ) return "Parameter 2 must be number";
+        if( is_int( $v2 )    && $t === 'S' ) return "Parameter 2 must be string";
+    }
+
+    if( strlen( $types ) > 3 )
+    {
+        $t = $types[3];
+        if( $v3 === null ) return "Undefined variable $s3: $line";
+        if( is_string( $v3 ) && $t === 'N' ) return "Parameter 3 must be number";
+        if( is_int( $v3 )    && $t === 'S' ) return "Parameter 3 must be string";
+    }
+
+    if( strlen( $types ) > 4 )
+    {
+        $t = $types[4];
+        if( $v4 === null ) return "Undefined variable $s4: $line";
+        if( is_string( $v4 ) && $t === 'N' ) return "Parameter 4 must be number";
+        if( is_int( $v4 )    && $t === 'S' ) return "Parameter 4 must be string";
+    }
+
+    if( strlen( $types ) > 5 )
+    {
+        $t = $types[5];
+        if( $v5 === null ) return "Undefined variable $s5: $line";
+        if( is_string( $v5 ) && $t === 'N' ) return "Parameter 5 must be number";
+        if( is_int( $v5 )    && $t === 'S' ) return "Parameter 5 must be string";
+    }
+
+    if( strlen( $types ) > 6 )
+    {
+        $t = $types[6];
+        if( $v6 === null ) return "Undefined variable $s6: $line";
+        if( is_string( $v6 ) && $t === 'N' ) return "Parameter 6 must be number";
+        if( is_int( $v6 )    && $t === 'S' ) return "Parameter 6 must be string";
+    }
+
+    return "";
 }
