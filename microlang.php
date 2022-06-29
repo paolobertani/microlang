@@ -114,6 +114,14 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
             if( in_array( $p, $keywords ) )
             {
                 $tokens[] = ['type' => 'keyword', 'symbol' => $p, 'value' => null ];
+
+                for( $j = $i + 1; $j < $n; $j++ )
+                {
+                    if( $parts[$j] === '' ) continue;
+                    if( $parts[$j] === '=' ) return "keywords cannot be used for variable names";
+                    break;
+                }
+
                 continue;
             }
 
@@ -123,6 +131,7 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
             if( substr( $p, -1, 1 ) === ":" && $i === 0 )
             {
                 $p = mb_substr( $p, 0, -1 );
+                if( in_array( $p, $keywords ) ) return "keywords cannot be used for label names: $y1b";
                 if( ! microlang_label_is_valid( $p ) ) return "Invalid label: $y1b";
                 $tokens[] = ['type' => 'label', 'symbol' => $p, 'value' => $y ];
                 if( isset( $labels[$p] ) ) return "Label $label duplicate: $y1b";
@@ -330,8 +339,10 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
 
         // = Assignment
 
-        if( ! $done && $tn === 3 && $t1t === 'variable' && $t2t === 'keyword' && $t2s === '=' && ( $t3t === 'variable' || $t3t === 'string' || $t3t === 'number' ) )
+        if( ! $done && $tn === 3 && $t1t === 'variable' && $t2t === 'keyword' && $t2s === '=' && microlang_vsn( $t3t ) )
         {
+            if( $t1t === 'keyword' ) return "keywords cannot be used for variable names";
+
             if( $t3v === null ) return "Undefined variable: $y1b";
 
             $vars[$t1s] = $t3v;
