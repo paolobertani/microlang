@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script type="text/javascript" src="../../microlang.js"></script>
+        <script type="text/javascript" src="assets/jquery.js"></script>
+        <script type="text/javascript">
+
+
+            function execute()
+            {
+                var code,
+                    io,
+                    output,
+                    key,
+                    error;
+
+                code = $('#code').val();
+
+                io =
+                {
+                    'start': parseInt( $('#start').val() ),
+                    'end':   parseInt( $('#end').val() )
+                };
+
+                error = microlang( code, io );
+
+                output = "";
+
+                if( error === '' )
+                {
+                    for( key in io )
+                    {
+                        if( io.hasOwnProperty( key ) )
+                        {
+                            if( typeof( io[key] ) === 'string' ) io[key] = "\"" + io[key] + "\"";
+                            output += key + ": " + io[key] + "\n";
+                        }
+                    }
+                }
+                else
+                {
+                    output = error;
+                }
+
+                $('#output').val( output );
+            }
+
+
+        </script>
+        <link rel="stylesheet" type="text/css" href="assets/example.css">
+
+        <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon/favicon-16x16.png">
+        <link rel="manifest" href="assets/favicon/site.webmanifest">
+        <link rel="mask-icon" href="assets/favicon/safari-pinned-tab.svg" color="#5bbad5">
+        <meta name="msapplication-TileColor" content="#da532c">
+        <meta name="theme-color" content="#ffffff">
+    </head>
+    <body>
+        <form>
+            <br />
+            Input:
+            <br />
+            <br />
+            start = <input id="start" type="number" value="10">
+            end =   <input id="end"   type="number" value="20">
+            <br />
+            <br />
+            <br />
+             Code:
+            <br />
+            <br />
+            <textarea id="code">
+// create a string with the numbers between `start` and `end` separated by a single space
+// expected input is numeric variables `start` and `end`
+// the string generated is stored into `result`
+
+if end < start then bad_input
+
+result = ""
+
+idx = start
+
+loop:
+  idx_str = string idx // cast idx to string
+  result = result + idx_str
+  result = result + " "
+
+  idx = idx + 1
+if idx > end then finish else loop
+
+finish: // remove the trailing space
+  l = len result
+  l = l - 1
+  result = substring result 0 l
+exit
+
+bad_input:
+  result = "`end`must be equal or greater than `start`"
+exit
+            </textarea>
+            <br />
+            <br />
+            Output:
+            <br />
+            <br />
+             <textarea id="output" onclick="execute();">Click on this text area to execute</textarea>
+        </form>
+    </body>
+</html>

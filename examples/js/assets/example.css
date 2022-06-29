@@ -1,0 +1,49 @@
+body
+{
+    font-family: sans-serif;
+    font-size: 14px;
+}
+
+input
+{
+    font-family: Monaco, monospace;
+    font-size: 11px;
+    border: 1px solid #bbb;
+    padding: 4px;
+}
+
+#code
+{
+    display: block;
+    overflow: scroll;
+    top: 50px;
+    left: 50px;
+    width: 800px;
+    height: 450px;
+    border: 1px solid #bbb;
+    padding: 4px;
+    font-family: Monaco, monospace;
+    font-size: 11px;
+    word-break: break-all;
+}
+
+#output
+{
+    display: block;
+    overflow: scroll;
+    top: 450px;
+    left: 50px;
+    width: 800px;
+    height: 150px;
+    border: 1px solid #bbb;
+    padding: 4px;
+    font-family: Monaco, monospace;
+    font-size: 11px;
+    word-break: break-all;
+}
+
+#button
+{
+    font-family: Monaco, monospace;
+    font-size: 11px;
+}

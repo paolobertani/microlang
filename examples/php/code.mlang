@@ -1,0 +1,26 @@
+// create a string with the numbers between `start` and `end` separated by a single space
+// expected input is numeric variables `start` and `end`
+
+if end < start then bad_input
+
+result = ""
+
+idx = start
+
+loop:
+  idx_str = string idx // cast idx to string
+  result = result + idx_str
+  result = result + " "
+
+  idx = idx + 1
+if idx > end then finish else loop
+
+finish:
+  l = len result
+  l = l - 1
+  result = substring result 0 l
+exit
+
+bad_input:
+  result = "`end`must be equal or greater than `start`"
+exit
