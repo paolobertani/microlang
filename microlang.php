@@ -56,8 +56,13 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
 
     if( ! is_array( $vars ) )
     {
-        return "Input data provided is not array";
+        return "input data provided is not array";
     }
+
+
+    // convert windows linefeeds to unix linefeeds if any
+
+    $code = str_replace( "\r\n", "\n", $code );
 
 
     // explode code
@@ -118,7 +123,7 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
                 for( $j = $i + 1; $j < $n; $j++ )
                 {
                     if( $parts[$j] === '' ) continue;
-                    if( $parts[$j] === '=' ) return "keywords cannot be used for variable names";
+                    if( $parts[$j] === '=' ) return "keywords cannot be used for variable names: $y1b";
                     break;
                 }
 
@@ -175,7 +180,7 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
                     }
                     $value .= ' ' . $pp;
                 }
-                if( ! $closed ) return "String not closed: $y1b";
+                if( ! $closed ) return "string not closed: $y1b";
 
                 $tokens[] = ['type' => 'string', 'symbol' => null, 'value' => $value ];
                 $i = $j;
@@ -343,7 +348,7 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
         {
             if( $t1t === 'keyword' ) return "keywords cannot be used for variable names";
 
-            if( $t3v === null ) return "Undefined variable: $y1b";
+            if( $t3v === null ) return "undefined variable: $y1b";
 
             $vars[$t1s] = $t3v;
 
@@ -356,6 +361,8 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
         if( ! $done && $tn === 6 && $t1t === 'variable' && $t2t === 'keyword' && $t2s === '=' && $t3t === 'keyword' && $t3s === 'substring' && microlang_vsn( $t4t, $t5t, $t6t ) )
         {
             $err = microlang_chk( "SNN", $y1b, $t4s, $t4v, $t5s, $t5v, $t6s, $t6v ); if( $err !== '' ) return $err;
+
+            if( $t5v < 0 || $t6v < 0 ) return "substring accepts only positive index and lenght";
 
             $vars[$t1s] = mb_substr( $t4v, $t5v, $t6v );
 
@@ -385,7 +392,7 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
 
             $vars[$t1s] = str_replace( $t5v, $t6v, $t4v );
 
-            if( mb_strlen( $vars[$t1s] ) > $max_str_len ) return "String too long: $y1b";
+            if( mb_strlen( $vars[$t1s] ) > $max_str_len ) return "string too long: $y1b";
 
             $done = true;
         }
@@ -470,14 +477,16 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
             if( is_string( $t3v ) && is_string( $t5v ) )
             {
                 $vars[$t1s] = $t3v . $t5v;
-                if( mb_strlen( $vars[$t1s] ) > $max_str_len ) return "String too long: $y1b";
+
+                if( mb_strlen( $vars[$t1s] ) > $max_str_len ) return "string too long: $y1b";
             }
             elseif( is_int( $t3v ) && is_int( $t5v ) )
             {
                 $vars[$t1s] = $t3v + $t5v;
-                if( $vars[$t1s] > PHP_INT_MAX || $vars[$t1s] < PHP_INT_MIN ) return "Overflow: $y1b";
+
+                if( $vars[$t1s] > PHP_INT_MAX || $vars[$t1s] < PHP_INT_MIN ) return "overflow: $y1b";
             }
-            else return "Addends must be of the same type: $y1b";
+            else return "addends must be of the same type: $y1b";
 
             $done = true;
         }
@@ -491,7 +500,7 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
 
             $vars[$t1s] = $t3v - $t5v;
 
-            if( $vars[$t1s] > PHP_INT_MAX || $vars[$t1s] < PHP_INT_MIN ) return "Overflow: $y1b";
+            if( $vars[$t1s] > PHP_INT_MAX || $vars[$t1s] < PHP_INT_MIN ) return "overflow: $y1b";
 
             $done = true;
         }
@@ -505,7 +514,7 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
 
             $vars[$t1s] = $t3v * $t5v;
 
-            if( $vars[$t1s] > PHP_INT_MAX || $vars[$t1s] < PHP_INT_MIN ) return "Overflow: $y1b";
+            if( $vars[$t1s] > PHP_INT_MAX || $vars[$t1s] < PHP_INT_MIN ) return "overflow: $y1b";
 
             $done = true;
         }
@@ -516,7 +525,8 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
         if( ! $done && $tn === 5 && $t1t === 'variable' && $t2t === 'keyword' && $t2s === '=' && $t4t === 'keyword' && $t4s === '/' && microlang_vsn( $t3t, $t5t ) )
         {
             $err = microlang_chk( "NN", $y1b, $t3s, $t3v, $t5s, $t5v ); if( $err !== '' ) return $err;
-            if( $t5v == 0 ) return "Division by zero: $y1b";
+
+            if( $t5v === 0 ) return "division by zero: $y1b";
 
             $vars[$t1s] = intdiv( $t3v, $t5v );
 
@@ -535,15 +545,15 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
                 if( $t7t === 'keyword' && $t7s === 'else' && $t8t === 'variable' )
                 {
                     // ok
-                } else return "Syntax error: $y1b";
+                } else return "syntax error: $y1b";
             }
 
             $err = microlang_chk( "XX", $y1b, $t2s, $t2v, $t4s, $t4v ); if( $err !== '' ) return $err;
 
             if( gettype( $t2v ) !== gettype( $t4v) ) return "Values mustbe of the same type: $y1b";
 
-            if( $t6v === null ) return "Undefined label $t6s: $y1b";
-            if( $tn === 8 && $t8v === null ) return "Undefined label $t8s: $y1b";
+            if( $t6v === null ) return "undefined label $t6s: $y1b";
+            if( $tn === 8 && $t8v === null ) return "undefined label $t8s: $y1b";
 
             if( $t3s === '==' || $t3s === '=' )
             {
@@ -686,7 +696,7 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
 
         if( ! $done )
         {
-            return "Error: $y1b";
+            return "error: $y1b";
         }
 
         $y++;
@@ -748,49 +758,49 @@ function microlang_chk( $types, $line, $s1 = null, $v1 = null,
     if( strlen( $types ) > 1 )
     {
         $t = $types[1];
-        if( $v1 === null ) return "Undefined variable $s1: $line";
-        if( is_string( $v1 ) && $t === 'N' ) return "Parameter 1 must be number";
-        if( is_int( $v1 )    && $t === 'S' ) return "Parameter 1 must be string";
+        if( $v1 === null ) return "undefined variable $s1: $line";
+        if( is_string( $v1 ) && $t === 'N' ) return "parameter 1 must be number: $line";
+        if( is_int( $v1 )    && $t === 'S' ) return "parameter 1 must be string: $line";
     }
 
     if( strlen( $types ) > 2 )
     {
         $t = $types[2];
-        if( $v2 === null ) return "Undefined variable $s2: $line";
-        if( is_string( $v2 ) && $t === 'N' ) return "Parameter 2 must be number";
-        if( is_int( $v2 )    && $t === 'S' ) return "Parameter 2 must be string";
+        if( $v2 === null ) return "undefined variable $s2: $line";
+        if( is_string( $v2 ) && $t === 'N' ) return "parameter 2 must be number: $line";
+        if( is_int( $v2 )    && $t === 'S' ) return "parameter 2 must be string: $line";
     }
 
     if( strlen( $types ) > 3 )
     {
         $t = $types[3];
-        if( $v3 === null ) return "Undefined variable $s3: $line";
-        if( is_string( $v3 ) && $t === 'N' ) return "Parameter 3 must be number";
-        if( is_int( $v3 )    && $t === 'S' ) return "Parameter 3 must be string";
+        if( $v3 === null ) return "undefined variable $s3: $line";
+        if( is_string( $v3 ) && $t === 'N' ) return "parameter 3 must be number: $line";
+        if( is_int( $v3 )    && $t === 'S' ) return "parameter 3 must be string: $line";
     }
 
     if( strlen( $types ) > 4 )
     {
         $t = $types[4];
-        if( $v4 === null ) return "Undefined variable $s4: $line";
-        if( is_string( $v4 ) && $t === 'N' ) return "Parameter 4 must be number";
-        if( is_int( $v4 )    && $t === 'S' ) return "Parameter 4 must be string";
+        if( $v4 === null ) return "undefined variable $s4: $line";
+        if( is_string( $v4 ) && $t === 'N' ) return "parameter 4 must be number: $line";
+        if( is_int( $v4 )    && $t === 'S' ) return "parameter 4 must be string: $line";
     }
 
     if( strlen( $types ) > 5 )
     {
         $t = $types[5];
-        if( $v5 === null ) return "Undefined variable $s5: $line";
-        if( is_string( $v5 ) && $t === 'N' ) return "Parameter 5 must be number";
-        if( is_int( $v5 )    && $t === 'S' ) return "Parameter 5 must be string";
+        if( $v5 === null ) return "undefined variable $s5: $line";
+        if( is_string( $v5 ) && $t === 'N' ) return "parameter 5 must be number: $line";
+        if( is_int( $v5 )    && $t === 'S' ) return "parameter 5 must be string: $line";
     }
 
     if( strlen( $types ) > 6 )
     {
         $t = $types[6];
-        if( $v6 === null ) return "Undefined variable $s6: $line";
-        if( is_string( $v6 ) && $t === 'N' ) return "Parameter 6 must be number";
-        if( is_int( $v6 )    && $t === 'S' ) return "Parameter 6 must be string";
+        if( $v6 === null ) return "undefined variable $s6: $line";
+        if( is_string( $v6 ) && $t === 'N' ) return "parameter 6 must be number: $line";
+        if( is_int( $v6 )    && $t === 'S' ) return "parameter 6 must be string: $line";
     }
 
     return "";
