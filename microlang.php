@@ -386,7 +386,7 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
 
         // Replace
 
-        if( ! $done && $tn === 6 && $t1t === 'variable' && $t2t === 'keyword' && $t2s === '=' && $t3t === 'keyword' && $t3s === 'replace' && microlang_vsn( $t4t, $t5t ) )
+        if( ! $done && $tn === 6 && $t1t === 'variable' && $t2t === 'keyword' && $t2s === '=' && $t3t === 'keyword' && $t3s === 'replace' && microlang_vsn( $t4t, $t5t, $t6t ) )
         {
             $err = microlang_chk( "SSS", $y1b, $t4s, $t4v, $t5s, $t5v, $t6s, $t6v ); if( $err !== '' ) return $err;
 
@@ -418,6 +418,19 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
 
             $done = true;
         }
+
+
+        // Trim
+
+        if( ! $done && $tn === 4 && $t1t === 'variable' && $t2t === 'keyword' && $t2s === '=' && $t3t === 'keyword' && $t3s === 'trim' && microlang_vsn( $t4t ) )
+        {
+            $err = microlang_chk( "SS", $y1b, $t4s, $t4v ); if( $err !== '' ) return $err;
+
+            $vars[$t1s] = trim( $t4v, " " );
+
+            $done = true;
+        }
+
 
 
         // Len

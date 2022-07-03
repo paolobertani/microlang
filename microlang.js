@@ -605,6 +605,18 @@ function microlang( code, vars, max_iterations )
         }
 
 
+        // Trim
+
+        if( ! done && tn === 4 && t1t === 'variable' && t2t === 'keyword' && t2s === '=' && t3t === 'keyword' && t3s === 'trim' && microlang_vsn( t4t ) )
+        {
+            err = microlang_chk( "S", y1b, t4s, t4v ); if( err !== '' ) return err;
+
+            vars[t1s] = vars[t4v].trim();
+
+            done = true;
+        }
+
+
         // Len
 
         if( ! done && tn === 4 && t1t === 'variable' && t2t === 'keyword' && t2s === '=' && t3t === 'keyword' && t3s === 'len' && microlang_vsn( t4t ) )
