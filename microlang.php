@@ -5,6 +5,10 @@
 //
 // microlang.php
 //
+// A php microlang interpreter
+//
+// microlang version 1.0
+//
 // Copyright (c) 2022, Paolo Bertani - Kalei S.r.l.
 //
 // All rights reserved.
