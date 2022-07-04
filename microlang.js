@@ -533,6 +533,14 @@ function microlang( code, vars, max_iterations )
         }
 
 
+        // Exit
+
+        if( ! done && tn === 2 && t1t === 'keyword' && t1s === 'exit' && microlang_vsn( t2t ) )
+        {
+            return t2v + '';
+        }
+
+
         // = Assignment
 
         if( ! done && tn === 3 && t1t === 'variable' && t2t === 'keyword' && t2s === '=' && microlang_vsn( t3t ) )
