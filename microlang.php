@@ -8,6 +8,7 @@
 // A php microlang interpreter
 //
 // microlang version 1.0
+// php interpreter version 1.0.1
 //
 // Copyright (c) 2022, Paolo Bertani - Kalei S.r.l.
 //
@@ -37,6 +38,7 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
         'substring',
         'position',
         'between',
+        'trim',
         'len',
         'int',
         'string',

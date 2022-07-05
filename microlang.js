@@ -6,6 +6,7 @@
 // A javascript microlang interpreter
 //
 // microlang version 1.0
+// js intepreter version 1.0.1
 //
 // Copyright (c) 2022, Paolo Bertani - Kalei S.r.l.
 //
@@ -223,6 +224,7 @@ function microlang( code, vars, max_iterations )
         'substring',
         'position',
         'between',
+        'trim',
         'len',
         'int',
         'string',
@@ -399,7 +401,7 @@ function microlang( code, vars, max_iterations )
 
             // Variable names
 
-            if( ! microlang_label_is_valid( p ) ) return "Invalid variable name: y1b p";
+            if( ! microlang_label_is_valid( p ) ) return "Invalid variable name: " + y1b + " " + p;
             tokens.push( { 'type': 'variable', 'symbol': p, 'value': null } );
 
         }
@@ -623,7 +625,7 @@ function microlang( code, vars, max_iterations )
         {
             err = microlang_chk( "S", y1b, t4s, t4v ); if( err !== '' ) return err;
 
-            vars[t1s] = vars[t4v].trim();
+            vars[t1s] = t4v.trim();
 
             done = true;
         }
