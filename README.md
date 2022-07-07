@@ -53,7 +53,7 @@ To inject microlang code in a web page to let it be executed by the JavaScript i
 let `$code` is the variable where the code is stored...
 
 ```
-    $code = str_replace( "\n\r", "\n" );
+    $code = str_replace( "\r\n", "\n" );
     $code = str_replace( "\n", '\n', $code );
     $code = str_replace( '"' , '\"', $code );
     echo "<script type='text/javascript'>\nvar code=\"$code\";\n</script>\n";
