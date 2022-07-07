@@ -235,7 +235,7 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
 
         $y1b = $y + 1;
 
-        if( $iter > $max_iterations ) return "Max iterations exceeded: $y1b";
+        if( $iter > $max_iterations && $max_iterations !== 0 ) return "Max iterations exceeded: $y1b";
 
         $tok = $lines[ $y ];
         $tn = count( $tok );

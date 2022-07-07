@@ -213,6 +213,8 @@ When the counter reach `1000` the execution is halted.
 
 A different limit can be specified by passing a third parameter to the `microlang()` function.
 
+Passing `0` allows unlimited number of iterations.
+
 &nbsp;
 
 ###Motivation
