@@ -129,6 +129,7 @@ a = b + c // sum
 a = b - c // subtraction
 a = b * c // multiplication
 a = b / c // division, always rounded down
+a = b % c // modulo (remainder of division)
 ```
 
 &nbsp;

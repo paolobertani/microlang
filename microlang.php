@@ -47,6 +47,7 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
         '-',
         '*',
         '/',
+        '%',
         'if', 'then', 'else', '==', '!=', '>', '<', '>=', '<='
     ];
 
@@ -556,6 +557,20 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
             if( $t5v === 0 ) return "division by zero: $y1b";
 
             $vars[$t1s] = intdiv( $t3v, $t5v );
+
+            $done = true;
+        }
+
+
+        // % Modulo
+
+        if( ! $done && $tn === 5 && $t1t === 'variable' && $t2t === 'keyword' && $t2s === '=' && $t4t === 'keyword' && $t4s === '%' && microlang_vsn( $t3t, $t5t ) )
+        {
+            $err = microlang_chk( "NN", $y1b, $t3s, $t3v, $t5s, $t5v ); if( $err !== '' ) return $err;
+
+            if( $t5v === 0 ) return "division by zero: $y1b";
+
+            $vars[$t1s] = $t3v % $t5v;
 
             $done = true;
         }
