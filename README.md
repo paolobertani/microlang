@@ -1,5 +1,5 @@
-#microlang - a minimal language
-###provided with a JavaScript and a Php interpreter
+# microlang - a minimal language
+### provided with a JavaScript and a Php interpreter
 
 
 
@@ -23,8 +23,7 @@ Alternatively grab the function `microlang()` and place it where is more conveni
 
 Usage:
 
-```
-
+```js
 var code,    // microlang code to be executed
     error,   // error eventually occurred during parsing or execution
     io,      // input/output variables
@@ -52,18 +51,18 @@ To inject microlang code in a web page to let it be executed by the JavaScript i
 
 let `$code` is the variable where the code is stored...
 
-```
-    $code = str_replace( "\r\n", "\n" );
-    $code = str_replace( "\n", '\n', $code );
-    $code = str_replace( '"' , '\"', $code );
-    echo "<script type='text/javascript'>\nvar code=\"$code\";\n</script>\n";
+```<?php
+$code = str_replace( "\r\n", "\n" );
+$code = str_replace( "\n", '\n', $code );
+$code = str_replace( '"' , '\"', $code );
+echo "<script type='text/javascript'>\nvar code=\"$code\";\n</script>\n";
 ```
 
 **Php:**
 
 Just `require_once "path_to/microlang.php";` in the file(s) where you need the interpreter.
 
-```
+```<?php
 $io =
 [
     'a' => 10,
@@ -76,12 +75,6 @@ $error = microlang( code, io );
 
 $result = $io['c'];
 ```
-
-
-
-
-
-
 
 &nbsp;
 
@@ -206,7 +199,7 @@ finish:
 &nbsp;
 
 
-###Safety
+### Safety
 
 In order to avoid microlang code tu run indefinitely (ex. due to an infinite loop) every time `goto`, `gosub` and `if` is encountered a counter is incremented.
 
@@ -218,7 +211,7 @@ Passing `0` allows unlimited number of iterations.
 
 &nbsp;
 
-###Motivation
+### Motivation
 
 For a website I manage I needed to give privileged users the ability to write small string manipulation algorithms.
 
@@ -233,19 +226,19 @@ The algorithms had to be run in a safe, sandboxed environment and shall run both
 
   
     
-###Contact
+### Contact
 
 ```
-    mailbox = "paolo.bertani"
-    domain = "kalei.it"
-    email = mailbox + "@"
-    email = email + domain
+mailbox = "paolo.bertani"
+domain = "kalei.it"
+email = mailbox + "@"
+email = email + domain
 ```
 
 
 &nbsp;
 
-###FreeBSD 2-clause license
+### FreeBSD 2-clause license
 
 
 **Copyright (c) 2022, Paolo Bertani - Kalei S.r.l.**
