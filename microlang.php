@@ -199,6 +199,8 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
 
             if( ctype_digit( $p ) )
             {
+                if( floatval( $p ) > PHP_INT_MAX ) return "overflow: $y1b";
+
                 $tokens[] = ['type' => 'number', 'symbol' => null, 'value' => intval($p) ];
                 continue;
             }
@@ -208,6 +210,8 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
 
             if( substr( $p, 0, 1 ) === '-' && ctype_digit( substr( $p, 1 ) ) )
             {
+                if( floatval( $p ) < PHP_INT_MIN ) return "overflow: $y1b";
+
                 $tokens[] = ['type' => 'number', 'symbol' => null, 'value' => intval($p) ];
                 continue;
             }
@@ -477,6 +481,8 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
         if( ! $done && $tn === 4 && $t1t === 'variable' && $t2t === 'keyword' && $t2s === '=' && $t3t === 'keyword' && $t3s === 'int' && microlang_vsn( $t4t ) )
         {
             $err = microlang_chk( "S", $y1b, $t4s, $t4v ); if( $err !== '' ) return $err;
+
+            if( floatval( $vars[$t4v] ) > PHP_INT_MAX || floatval( $vars[$t4v] < PHP_INT_MIN ) ) return "overflow: $y1b";
 
             $vars[$t1s] = intval( $t4v );
 

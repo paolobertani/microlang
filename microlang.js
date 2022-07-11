@@ -386,6 +386,8 @@ function microlang( code, vars, max_iterations )
 
             if( /^\d+/.test( p ) )
             {
+                if( parseFloat( p ) > 9223372036854775807 ) return "overflow: " + y1b;
+
                 tokens.push( { 'type': 'number', 'symbol': null, 'value': parseInt(p) } );
                 continue;
             }
@@ -395,6 +397,8 @@ function microlang( code, vars, max_iterations )
 
             if( p.substring( 0, 1 ) === '-' && /^\d+/.test( p.substring( 1 ) ) )
             {
+                if( parseFloat( p ) < -9223372036854775808 ) return "overflow: " + y1b;
+
                 tokens.push( { 'type': 'number', 'symbol': null, 'value': parseInt(p) } );
                 continue;
             }
@@ -661,6 +665,8 @@ function microlang( code, vars, max_iterations )
         if( ! done && tn === 4 && t1t === 'variable' && t2t === 'keyword' && t2s === '=' && t3t === 'keyword' && t3s === 'int' && microlang_vsn( t4t ) )
         {
             err = microlang_chk( "S", y1b, t4s, t4v ); if( err !== '' ) return err;
+
+            if( parseFloat( t4v ) > 9223372036854775807 || parseFloat( t4v ) < -9223372036854775808 ) return "overflow: " + y1b;
 
             vars[t1s] = parseInt( t4v );
 
