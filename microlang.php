@@ -423,6 +423,10 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
         {
             $err = microlang_chk( "SSS", $y1b, $t4s, $t4v, $t5s, $t5v, $t6s, $t6v ); if( $err !== '' ) return $err;
 
+            if( $t5v === '' ) { $i1 = 0; }                 else { $i1 = mb_strpos( $t4v, $t5v ); }
+
+            if( $t6v === '' ) { $i2 = mb_strlen( $t5v ); } else { $i2 = mb_strpos( $t4v, $t6v ); }
+
             $i1 = mb_strpos( $t4v, $t5v );
             $i2 = mb_strpos( $t4v, $t6v );
 

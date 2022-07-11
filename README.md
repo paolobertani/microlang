@@ -5,7 +5,7 @@
 
 `language version 1.0`
 
-`interpreters version 1.0.1`
+`interpreters version 1.0.2`
 
 -
 
@@ -133,6 +133,8 @@ a = b % c // modulo (remainder of division)
 a = b + c // concatenation (where `b` and `c` are strings)
 a = substring b 3 5 // 5 characters from position 3 (index 0 based)
 a = between b "(" ")" // the text between the markers `(` and `)`
+a = between b "" "x" // the text between the beginning and "x"
+a = between b "x" "" // the text between "x" and the end of the string
 a = trim b // removes leading and trailing spaces
 idx = position a b // the starting position of `b` in `a`, -1 if not found
 l = len a // the length of the string
@@ -201,7 +203,7 @@ finish:
 
 ### Safety
 
-In order to avoid microlang code tu run indefinitely (ex. due to an infinite loop) every time `goto`, `gosub` and `if` is encountered a counter is incremented.
+In order to avoid microlang code to run indefinitely (ex. due to an infinite loop) every time `goto`, `gosub` or `if` are encountered a counter is incremented.
 
 When the counter reach `1000` the execution is halted.
 

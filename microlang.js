@@ -608,8 +608,9 @@ function microlang( code, vars, max_iterations )
         {
             err = microlang_chk( "SSS", y1b, t4s, t4v, t5s, t5v, t6s, t6v ); if( err !== '' ) return err;
 
-            i1 = t4v.indexOf( t5v );
-            i2 = t4v.indexOf( t6v );
+            if( t5v === '' ) { i1 = 0; }          else { i1 = t4v.indexOf( t5v ); }
+
+            if( t6v === '' ) { i2 = t5v.length; } else { i2 = t4v.indexOf( t6v ); }
 
             if( i1 === -1 || i2 === -1 || i2 < i1 )
             {
