@@ -1,5 +1,5 @@
 # microlang - a minimal language
-### provided with a JavaScript and a Php interpreter
+### provided with JavaScript and Php interpreters
 
 
 
