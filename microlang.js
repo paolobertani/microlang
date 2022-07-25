@@ -624,6 +624,8 @@ function microlang( code, vars, max_iterations )
         {
             if( t1t === 'keyword' ) return "keywords cannot be used for variable names: " + y1b;
 
+            if( t1s === 'cast_failed' ) return "`cast_failed` is a reserved variable name: " + y1b;
+
             if( t3v === null ) return "undefined variable: " + y1b;
 
             if( typeof( vars[t1s] ) !== 'undefined' && gettype( vars[t1s] ) !== gettype( t3v ) ) return "variable cannot change type: " + y1b;
@@ -1073,6 +1075,8 @@ function microlang( code, vars, max_iterations )
             break;
         }
     }
+
+    delete vars[ 'cast_failed' ];
 
     return "";
 }
