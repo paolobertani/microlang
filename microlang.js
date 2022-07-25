@@ -94,14 +94,14 @@ function microlang( code, vars, max_iterations )
 
     var is_int = function( x )
     {
-        return ( typeof( x ) === 'number' && Number.isFloat( x ) === false );
+        return ( typeof( x ) === 'number' && Number.isInteger( x ) === true );
     };
 
 
 
     var is_float = function( x )
     {
-        return ( typeof( x ) === 'number' && Number.isFloat( x ) === true );
+        return ( typeof( x ) === 'number' && Number.isInteger( x ) === false );
     };
 
 
