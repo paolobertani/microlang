@@ -3,13 +3,13 @@
 
 
 
-`language version 1.0`
+`language version 1.1`
 
-`interpreters version 1.0.2`
+`interpreters version 1.1.0`
 
 -
 
-**microlang** is a minimal language intended primarly for small algorithms for basic string manipulation, to be executed via interpreter by the browser or server side (php).
+**microlang** is a minimal language intended primarly for small algorithms for basic string manipulation, or math; it is designed to be executed via interpreter by the browser or server side (php).
 
 &nbsp;
 
@@ -84,20 +84,25 @@ $result = $io['c'];
 
 ```
 a = "text" // string
-b = 123 // number
+b = 123 // integer
+c = 12.3 // float
 ```
 
 Variables names are case sensitive.
 
 Allowed characters are `azAZ09_` variable name must not start with a number.
 
-Variable types are string or integer signed number.
+Variable types are string, integer signed number or float.
 
-Variable type is determined at first assignment.
+Variable type is determined at first assignment and cannot be changed later.
+
+Variable casting is done explicitly via `string`, `int` or `float` functions.
 
 String can be up to 1048576 characters long.
 
-Numbers must fit a 64 bit signed integer.
+Integers must fit a 64 bit signed integer.
+
+Float must fit a 64 bit double.
 
 &nbsp;
 
@@ -105,7 +110,7 @@ Numbers must fit a 64 bit signed integer.
 
 ```
 a = "123"
-b = number a // b = 123
+b = int a // b = 123
 ```
 
 ```
@@ -113,17 +118,35 @@ a = 123
 b = string a // b = "123"
 ```
 
+```
+a = "12.3"
+b = float a // b = 12.3
+```
+
+Casting success or failure can be detected by inspecting the variable `cast_failed` whose value can be `0` (failed) or `1` (success).
+
+In case of cast to integer/float failure the value is set to `0`.
+
+```
+a = "1b"
+b = int a 
+// b = 0
+// cast_failed = 1
+```
+
 &nbsp;
 
-**Integer math:**
+**Math:**
 
 ```
 a = b + c // sum
 a = b - c // subtraction
 a = b * c // multiplication
 a = b / c // division, always rounded down
-a = b % c // modulo (remainder of division)
+a = b % c // modulo (remainder of division) - integers only
 ```
+
+Both values of the operation must be of the same type
 
 &nbsp;
 
@@ -145,7 +168,7 @@ l = len a // the length of the string
 **Type detection:**
 
 ```
-a = typeof b // "string" or "number"
+a = typeof b // "string", "int" or "float"
 ```
 
 &nbsp;
@@ -175,7 +198,7 @@ exit "something wrong" // the specified string is returned as error
 
 &nbsp;
 
-###Example
+### Example
 
 ```
 // Create a string with the numbers from `a` to `b`
