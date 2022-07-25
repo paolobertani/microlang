@@ -556,6 +556,8 @@ function microlang( code, vars, max_iterations )
 
             if( t3v === null ) return "undefined variable: " + y1b;
 
+            if( typeof( vars[t1s] ) !== 'undefined' && typeof( vars[t1s] ) !== typeof( t3v ) ) return "variable cannot change type: " + $y1b;
+
             vars[t1s] = t3v;
 
             done = true;

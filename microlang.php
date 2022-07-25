@@ -369,6 +369,8 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
 
             if( $t3v === null ) return "undefined variable: $y1b";
 
+            if( isset( $vars[$t1s] ) && gettype( $vars[$t1s] ) !== gettype( $t3v ) ) return "variable cannot change type: $y1b";
+
             $vars[$t1s] = $t3v;
 
             $done = true;
