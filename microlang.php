@@ -195,24 +195,24 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
             }
 
 
-            // Numbers
+            // Integers
 
             if( ctype_digit( $p ) )
             {
                 if( floatval( $p ) > PHP_INT_MAX ) return "overflow: $y1b";
 
-                $tokens[] = ['type' => 'number', 'symbol' => null, 'value' => intval($p) ];
+                $tokens[] = ['type' => 'int', 'symbol' => null, 'value' => intval($p) ];
                 continue;
             }
 
 
-            // Negative numbers
+            // Negative integers
 
             if( substr( $p, 0, 1 ) === '-' && ctype_digit( substr( $p, 1 ) ) )
             {
                 if( floatval( $p ) < PHP_INT_MIN ) return "overflow: $y1b";
 
-                $tokens[] = ['type' => 'number', 'symbol' => null, 'value' => intval($p) ];
+                $tokens[] = ['type' => 'int', 'symbol' => null, 'value' => intval($p) ];
                 continue;
             }
 
@@ -255,7 +255,7 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
         {
             $t = $tok[ $i ];
 
-            if( $t['type'] === 'label' || $t['type'] === 'string' || $t['type'] === 'number' || $t['type'] === 'keyword' )
+            if( $t['type'] === 'label' || $t['type'] === 'string' || $t['type'] === 'int' || $t['type'] === 'keyword' )
             {
                 $tokens[] = $t;
             }
@@ -474,7 +474,7 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
         {
             $err = microlang_chk( "X", $y1b, $t4s, $t4v ); if( $err !== '' ) return $err;
 
-            $vars[$t1s] = is_string( $t4v ) ? 'string' : 'number';
+            $vars[$t1s] = is_string( $t4v ) ? 'string' : 'int';
 
             $done = true;
         }
@@ -787,12 +787,12 @@ function microlang_label_is_valid( $lab )
 
 function microlang_vsn( $t1 = null, $t2 = null, $t3 = null, $t4 = null, $t5 = null, $t6 = null )
 {
-    if( ( $t1 === null || $t1 === 'variable' || $t1 === 'string' || $t1 === 'number' ) &&
-        ( $t2 === null || $t2 === 'variable' || $t2 === 'string' || $t2 === 'number' ) &&
-        ( $t3 === null || $t3 === 'variable' || $t3 === 'string' || $t3 === 'number' ) &&
-        ( $t4 === null || $t4 === 'variable' || $t4 === 'string' || $t4 === 'number' ) &&
-        ( $t5 === null || $t5 === 'variable' || $t5 === 'string' || $t5 === 'number' ) &&
-        ( $t6 === null || $t6 === 'variable' || $t6 === 'string' || $t6 === 'number' ) ) return true;
+    if( ( $t1 === null || $t1 === 'variable' || $t1 === 'string' || $t1 === 'int' ) &&
+        ( $t2 === null || $t2 === 'variable' || $t2 === 'string' || $t2 === 'int' ) &&
+        ( $t3 === null || $t3 === 'variable' || $t3 === 'string' || $t3 === 'int' ) &&
+        ( $t4 === null || $t4 === 'variable' || $t4 === 'string' || $t4 === 'int' ) &&
+        ( $t5 === null || $t5 === 'variable' || $t5 === 'string' || $t5 === 'int' ) &&
+        ( $t6 === null || $t6 === 'variable' || $t6 === 'string' || $t6 === 'int' ) ) return true;
     return false;
 }
 
@@ -811,7 +811,7 @@ function microlang_chk( $types, $line, $s1 = null, $v1 = null,
     {
         $t = $types[1];
         if( $v1 === null ) return "undefined variable $s1: $line";
-        if( is_string( $v1 ) && $t === 'N' ) return "parameter 1 must be number: $line";
+        if( is_string( $v1 ) && $t === 'N' ) return "parameter 1 must be integer: $line";
         if( is_int( $v1 )    && $t === 'S' ) return "parameter 1 must be string: $line";
     }
 
@@ -819,7 +819,7 @@ function microlang_chk( $types, $line, $s1 = null, $v1 = null,
     {
         $t = $types[2];
         if( $v2 === null ) return "undefined variable $s2: $line";
-        if( is_string( $v2 ) && $t === 'N' ) return "parameter 2 must be number: $line";
+        if( is_string( $v2 ) && $t === 'N' ) return "parameter 2 must be integer: $line";
         if( is_int( $v2 )    && $t === 'S' ) return "parameter 2 must be string: $line";
     }
 
@@ -827,7 +827,7 @@ function microlang_chk( $types, $line, $s1 = null, $v1 = null,
     {
         $t = $types[3];
         if( $v3 === null ) return "undefined variable $s3: $line";
-        if( is_string( $v3 ) && $t === 'N' ) return "parameter 3 must be number: $line";
+        if( is_string( $v3 ) && $t === 'N' ) return "parameter 3 must be integer: $line";
         if( is_int( $v3 )    && $t === 'S' ) return "parameter 3 must be string: $line";
     }
 
@@ -835,7 +835,7 @@ function microlang_chk( $types, $line, $s1 = null, $v1 = null,
     {
         $t = $types[4];
         if( $v4 === null ) return "undefined variable $s4: $line";
-        if( is_string( $v4 ) && $t === 'N' ) return "parameter 4 must be number: $line";
+        if( is_string( $v4 ) && $t === 'N' ) return "parameter 4 must be integer: $line";
         if( is_int( $v4 )    && $t === 'S' ) return "parameter 4 must be string: $line";
     }
 
@@ -843,7 +843,7 @@ function microlang_chk( $types, $line, $s1 = null, $v1 = null,
     {
         $t = $types[5];
         if( $v5 === null ) return "undefined variable $s5: $line";
-        if( is_string( $v5 ) && $t === 'N' ) return "parameter 5 must be number: $line";
+        if( is_string( $v5 ) && $t === 'N' ) return "parameter 5 must be integer: $line";
         if( is_int( $v5 )    && $t === 'S' ) return "parameter 5 must be string: $line";
     }
 
@@ -851,7 +851,7 @@ function microlang_chk( $types, $line, $s1 = null, $v1 = null,
     {
         $t = $types[6];
         if( $v6 === null ) return "undefined variable $s6: $line";
-        if( is_string( $v6 ) && $t === 'N' ) return "parameter 6 must be number: $line";
+        if( is_string( $v6 ) && $t === 'N' ) return "parameter 6 must be integer: $line";
         if( is_int( $v6 )    && $t === 'S' ) return "parameter 6 must be string: $line";
     }
 

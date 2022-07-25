@@ -120,12 +120,12 @@ function microlang( code, vars, max_iterations )
         if( typeof( t5 ) === 'undefined' ) t5 = null;
         if( typeof( t6 ) === 'undefined' ) t6 = null;
 
-        if( ( t1 === null || t1 === 'variable' || t1 === 'string' || t1 === 'number' ) &&
-            ( t2 === null || t2 === 'variable' || t2 === 'string' || t2 === 'number' ) &&
-            ( t3 === null || t3 === 'variable' || t3 === 'string' || t3 === 'number' ) &&
-            ( t4 === null || t4 === 'variable' || t4 === 'string' || t4 === 'number' ) &&
-            ( t5 === null || t5 === 'variable' || t5 === 'string' || t5 === 'number' ) &&
-            ( t6 === null || t6 === 'variable' || t6 === 'string' || t6 === 'number' ) ) return true;
+        if( ( t1 === null || t1 === 'variable' || t1 === 'string' || t1 === 'int' ) &&
+            ( t2 === null || t2 === 'variable' || t2 === 'string' || t2 === 'int' ) &&
+            ( t3 === null || t3 === 'variable' || t3 === 'string' || t3 === 'int' ) &&
+            ( t4 === null || t4 === 'variable' || t4 === 'string' || t4 === 'int' ) &&
+            ( t5 === null || t5 === 'variable' || t5 === 'string' || t5 === 'int' ) &&
+            ( t6 === null || t6 === 'variable' || t6 === 'string' || t6 === 'int' ) ) return true;
         return false;
     };
 
@@ -159,48 +159,48 @@ function microlang( code, vars, max_iterations )
         {
             t = types[1];
             if( v1 === null ) return "undefined variable " + s1 + ": " + line;
-            if( typeof( v1 ) === 'string' && t === 'N' ) return "parameter 1 must be number: " + line;
-            if( typeof( v1 ) === 'number' && t === 'S' ) return "parameter 1 must be string: " + line;
+            if( typeof( v1 ) === 'string' && t === 'N' ) return "parameter 1 must be integer: " + line;
+            if( typeof( v1 ) === 'int' && t === 'S' ) return "parameter 1 must be string: " + line;
         }
 
         if( types.length > 2 )
         {
             t = types[2];
             if( v2 === null ) return "undefined variable " + s2 + ": " + line;
-            if( typeof( v2 ) === 'string' && t === 'N' ) return "parameter 2 must be number: " + line;
-            if( typeof( v2 ) === 'number' && t === 'S' ) return "parameter 2 must be string: " + line;
+            if( typeof( v2 ) === 'string' && t === 'N' ) return "parameter 2 must be integer: " + line;
+            if( typeof( v2 ) === 'int' && t === 'S' ) return "parameter 2 must be string: " + line;
         }
 
         if( types.length > 3 )
         {
             t = types[3];
             if( v3 === null ) return "undefined variable " + s3 + ": " + line;
-            if( typeof( v3 ) === 'string' && t === 'N' ) return "parameter 3 must be number: " + line;
-            if( typeof( v3 ) === 'number' && t === 'S' ) return "parameter 3 must be string: " + line;
+            if( typeof( v3 ) === 'string' && t === 'N' ) return "parameter 3 must be integer: " + line;
+            if( typeof( v3 ) === 'int' && t === 'S' ) return "parameter 3 must be string: " + line;
         }
 
         if( types.length > 4 )
         {
             t = types[4];
             if( v4 === null ) return "undefined variable " + s4 + ": " + line;
-            if( typeof( v4 ) === 'string' && t === 'N' ) return "parameter 4 must be number: " + line;
-            if( typeof( v4 ) === 'number' && t === 'S' ) return "parameter 4 must be string: " + line;
+            if( typeof( v4 ) === 'string' && t === 'N' ) return "parameter 4 must be integer: " + line;
+            if( typeof( v4 ) === 'int' && t === 'S' ) return "parameter 4 must be string: " + line;
         }
 
         if( types.length > 5 )
         {
             t = types[5];
             if( v5 === null ) return "undefined variable " + s5 + ": " + line;
-            if( typeof( v5 ) === 'string' && t === 'N' ) return "parameter 5 must be number: " + line;
-            if( typeof( v5 ) === 'number' && t === 'S' ) return "parameter 5 must be string: " + line;
+            if( typeof( v5 ) === 'string' && t === 'N' ) return "parameter 5 must be integer: " + line;
+            if( typeof( v5 ) === 'int' && t === 'S' ) return "parameter 5 must be string: " + line;
         }
 
         if( types.length > 6 )
         {
             t = types[6];
             if( v6 === null ) return "undefined variable " + s6 + ": " + line;
-            if( typeof( v6 ) === 'string' && t === 'N' ) return "parameter 6 must be number: " + line;
-            if( typeof( v6 ) === 'number' && t === 'S' ) return "parameter 6 must be string: " + line;
+            if( typeof( v6 ) === 'string' && t === 'N' ) return "parameter 6 must be integer: " + line;
+            if( typeof( v6 ) === 'int' && t === 'S' ) return "parameter 6 must be string: " + line;
         }
 
         return "";
@@ -382,24 +382,24 @@ function microlang( code, vars, max_iterations )
             }
 
 
-            // Numbers
+            // Integers
 
             if( /^\d+/.test( p ) )
             {
                 if( parseFloat( p ) > 9223372036854775807 ) return "overflow: " + y1b;
 
-                tokens.push( { 'type': 'number', 'symbol': null, 'value': parseInt(p) } );
+                tokens.push( { 'type': 'int', 'symbol': null, 'value': parseInt(p) } );
                 continue;
             }
 
 
-            // Negative numbers
+            // Negative integers
 
             if( p.substring( 0, 1 ) === '-' && /^\d+/.test( p.substring( 1 ) ) )
             {
                 if( parseFloat( p ) < -9223372036854775808 ) return "overflow: " + y1b;
 
-                tokens.push( { 'type': 'number', 'symbol': null, 'value': parseInt(p) } );
+                tokens.push( { 'type': 'int', 'symbol': null, 'value': parseInt(p) } );
                 continue;
             }
 
@@ -442,7 +442,7 @@ function microlang( code, vars, max_iterations )
         {
             t = tok[ i ];
 
-            if( t['type'] === 'label' || t['type'] === 'string' || t['type'] === 'number' || t['type'] === 'keyword' )
+            if( t['type'] === 'label' || t['type'] === 'string' || t['type'] === 'int' || t['type'] === 'keyword' )
             {
                 tokens.push( t );
             }
@@ -655,7 +655,7 @@ function microlang( code, vars, max_iterations )
         {
             err = microlang_chk( "X", y1b, t4s, t4v ); if( err !== '' ) return err;
 
-            vars[t1s] = typeof( t4v ) === 'string' ? 'string' : 'number';
+            vars[t1s] = typeof( t4v ) === 'string' ? 'string' : 'int';
 
             done = true;
         }
@@ -699,7 +699,7 @@ function microlang( code, vars, max_iterations )
 
                 if( vars[t1s].length > max_str_len ) return "string too long: " + y1b;
             }
-            else if( typeof( t3v ) === 'number' && typeof( t5v ) === 'number' )
+            else if( typeof( t3v ) === 'int' && typeof( t5v ) === 'int' )
             {
                 vars[t1s] = t3v + t5v;
 
