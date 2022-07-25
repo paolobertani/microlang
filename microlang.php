@@ -589,7 +589,7 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
         // If Then [Else]
 
         if( ! $done && ( $tn === 6 || $tn === 8 ) && $t1t === 'keyword' && $t1s === 'if' && microlang_vsn( $t2t, $t4t ) &&
-           $t3t === 'keyword' && ( $t3s === '==' || $t3s === '=' || $t3s === '!=' || $t3s === '>' || $t3s === '<' || $t3s === '>=' || $t3s === '<=' )  &&
+           $t3t === 'keyword' && ( $t3s === '==' || $t3s === '!=' || $t3s === '>' || $t3s === '<' || $t3s === '>=' || $t3s === '<=' )  &&
                $t5t === 'keyword' && $t5s === 'then' && $t6t === 'variable' )
         {
             if( $tn === 8 )
@@ -602,12 +602,12 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
 
             $err = microlang_chk( "XX", $y1b, $t2s, $t2v, $t4s, $t4v ); if( $err !== '' ) return $err;
 
-            if( gettype( $t2v ) !== gettype( $t4v) ) return "Values mustbe of the same type: $y1b";
+            if( gettype( $t2v ) !== gettype( $t4v) ) return "values must be of the same type: $y1b";
 
             if( $t6v === null ) return "undefined label $t6s: $y1b";
             if( $tn === 8 && $t8v === null ) return "undefined label $t8s: $y1b";
 
-            if( $t3s === '==' || $t3s === '=' )
+            if( $t3s === '==' )
             {
                 if( $t2v == $t4v )
                 {
