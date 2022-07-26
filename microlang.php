@@ -41,7 +41,7 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
         'trim',
         'len',
         'int',
-        'float'
+        'float',
         'string',
         'typeof',
         '+',
