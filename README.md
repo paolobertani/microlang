@@ -5,11 +5,11 @@
 
 `language version 1.1`
 
-`interpreters version 1.1.0`
+`interpreters version 1.1.1`
 
 -
 
-**microlang** is a minimal language intended primarly for small algorithms for basic string manipulation, or math; it is designed to be executed via interpreter by the browser or server side (php).
+**microlang** is a minimal language intended primarly for small algorithms for basic string manipulation and math; it is designed to be executed via interpreter by the browser or server side (php).
 
 &nbsp;
 
@@ -94,7 +94,7 @@ Allowed characters are `azAZ09_` variable name must not start with a number.
 
 Variable types are string, integer signed number or float.
 
-Variable type is determined at first assignment and cannot be changed later.
+Variable type is determined at first assignment and cannot be changed later; only exception to this rule are `int`s that can be casted to `float`. 
 
 Variable casting is done explicitly via `string`, `int` or `float` functions.
 
@@ -103,6 +103,8 @@ String can be up to 1048576 characters long.
 Integers must fit a 64 bit signed integer.
 
 Float must fit a 64 bit double.
+
+To let a literal number be considered float a decimal separator must be included, ex: `4` is `int` while `4.0` is `float`
 
 &nbsp;
 
@@ -125,8 +127,6 @@ b = float a // b = 12.3
 
 Casting success or failure can be detected by inspecting the variable `cast_failed` whose value can be `0` (failed) or `1` (success).
 
-In case of cast to integer/float failure the value is set to `0`.
-
 ```
 a = "1b"
 b = int a 
@@ -142,11 +142,11 @@ b = int a
 a = b + c // sum
 a = b - c // subtraction
 a = b * c // multiplication
-a = b / c // division, always rounded down
+a = b / c // division, (always rounded down on integers)
 a = b % c // modulo (remainder of division) - integers only
 ```
 
-Both values of the operation must be of the same type
+Both operands must be of the same type
 
 &nbsp;
 
@@ -190,7 +190,7 @@ exit "something wrong" // the specified string is returned as error
 
 **Conditional operators**
 
-`=` or `==`
+`==` equality
 
 `!=` not equal
 
@@ -223,6 +223,23 @@ finish:
 
 &nbsp;
 
+**JavaScript and float input values**
+
+When a number is passed as input value...
+
+```
+io = { 'x': y };
+```
+
+...there is no way to force `x` to be of type float despite the value of `y`.
+This is due to the JavaScript language.
+To solve this issue cast `x` to `float` at the beginning of the microlang program.
+
+```
+x = float x
+``` 
+
+&nbsp;
 
 ### Safety
 
