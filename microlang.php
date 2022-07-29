@@ -1303,6 +1303,11 @@ function microlang_tokenize( $line, &$error )
             {
                 if( $token !== '' )
                 {
+                    if( $token === '.' )
+                    {
+                        $error = "unexpected character `$c`: ";
+                        return $tokens;
+                    }
                     $tokens[] = $token;
                     $token = "";
                 }

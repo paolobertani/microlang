@@ -515,6 +515,11 @@ function microlang( code, vars, max_iterations )
                 {
                     if( token !== '' )
                     {
+                        if( token === '.' )
+                        {
+                            error['msg'] = "unexpected character `" + c + "`: ";
+                            return tokens;
+                        }
                         tokens.push( token );
                         token = "";
                     }
