@@ -1082,10 +1082,14 @@ function microlang_tokenize( $line, &$error )
     $token = "";
     $s = ' '; // STATUS: ' ' space, 'o' operator, 's' string, 'n' number, 'y' symbol
 
+    $dec = false;
+    $exp = false;
+
     for( $i = 0; $i < $n; $i++ )
     {
         $c = mb_substr( $line, $i, 1 );
         $c2= mb_substr( $line, $i, 2 );
+        $cn= mb_substr( $line, $i + 1, 1 );
 
         if( $c === ' ' )
         {
@@ -1102,6 +1106,8 @@ function microlang_tokenize( $line, &$error )
                     $tokens[] = $token;
                     $token = '';
                 }
+                $dec = false;
+                $exp = false;
                 $s = ' ';
                 continue;
             }
@@ -1153,8 +1159,116 @@ function microlang_tokenize( $line, &$error )
             continue;
         }
 
-        if( strpos( ".0123456789", $c ) !== false )
+        if( ( $cn === '-' || $cn === '+' ) && $s === 'n' )
         {
+            if( strpos( "0123456789", $c ) !== false )
+            {
+                $token .= $c;
+                $tokens[] = $token;
+                $token = '';
+                continue;
+            }
+        }
+
+        if( strpos( ".0123456789eE-", $c ) !== false )
+        {
+            if( $s === 's' )
+            {
+                $token .= $c;
+                continue;
+            }
+
+            if( $s === ' ' )
+            {
+                if( strpos( ".0123456789-", $c ) !== false )
+                {
+                    if( $token !== '' )
+                    {
+                        $tokens[] = $token;
+                        $token = "";
+                    }
+                    $token .= $c;
+                    $s = 'n';
+                    continue;
+                }
+            }
+
+            if( $s === 'y' && $c === '.' )
+            {
+                $error = "unexpected character `$c`: ";
+                return $tokens;
+            }
+
+            if( $s === 'y' && $c === '-' )
+            {
+                if( $token !== '' )
+                {
+                    $tokens[] = $token;
+                    $token = "";
+                }
+
+                $s = ' ';
+                $dec = false;
+                $exp = false;
+                $i--;
+                continue;
+            }
+
+            if( $s === 'n' && strpos( "0123456789", $c ) !== false )
+            {
+                $token .= $c;
+                continue;
+            }
+
+            if( $s === 'n' && $c === '.' )
+            {
+                if( $dec || $exp )
+                {
+                    $error = "unexpected character `$c`: ";
+                    return $tokens;
+                }
+
+                if( strpos( "0123456789", $cn ) === false )
+                {
+                    $error = "unexpected character `$c`: ";
+                    return $tokens;
+                }
+
+                $dec = true;
+                $token .= $c;
+                continue;
+            }
+
+            if( $s === 'n' && ( $c === 'e' || $c === 'E' ) )
+            {
+                if( $exp )
+                {
+                    $error = "unexpected character `$c`: ";
+                    return $tokens;
+                }
+
+                if( $cn === '-' )
+                {
+                    $dec = false;
+                    $exp = true;
+                    $token .= $c . $cn;
+                    $i++;
+                    continue;
+                }
+
+                if( strpos( "0123456789", $cn ) === false )
+                {
+                    $error = "unexpected character `$c`: ";
+                    return $tokens;
+                }
+
+                $dec = false;
+                $exp = true;
+
+                $token .= $c;
+                continue;
+            }
+
             if( $s === 'n' || $s === 's' && $s !== 'y' )
             {
                 $token .= $c;
@@ -1175,6 +1289,12 @@ function microlang_tokenize( $line, &$error )
 
         if( strpos( "_abcdefghijkilmnopqrstuvwxyzABCDEFGHIJKILMNOPQRSTUVXYZ0123456789:", $c ) !== false )
         {
+            if( $s === 'y' && $c === ':' && ( $i !== $n - 1 || count( $tokens ) !== 0 ) )
+            {
+                $error = "unexpected character `:`: ";
+                return $tokens;
+            }
+
             if( $s === 'y' || $s === 's' )
             {
                 $token .= $c;
