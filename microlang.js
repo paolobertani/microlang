@@ -273,6 +273,298 @@ function microlang( code, vars, max_iterations )
 
 
 
+    var microlang_tokenize = function( line, error )
+    {
+        var tokens,
+            i,
+            n,
+            s,
+            token,
+            dec,
+            exp,
+            c,
+            c2,
+            cn;
+
+        error['msg'] = '';
+
+        tokens = [];
+
+        n = line.length;
+        token = "";
+        s = ' '; // STATUS: ' ' space, 'o' operator, 's' string, 'n' number, 'y' symbol
+
+        dec = false;
+        exp = false;
+
+        for( i = 0; i < n; i++ )
+        {
+            c = line.substring( i, i + 1 );
+            c2= line.substring( i, i + 2 );
+            cn= line.substring( i + 1, i + 2 );
+
+            if( c === ' ' )
+            {
+                if( s === 's' )
+                {
+                    token += c;
+                    continue;
+                }
+
+                if( s !== ' ' )
+                {
+                    if( token !== '' )
+                    {
+                        tokens.push( token );
+                        token = '';
+                    }
+                    dec = false;
+                    exp = false;
+                    s = ' ';
+                    continue;
+                }
+                else
+                {
+                    continue;
+                }
+            }
+
+            if( c === "\\" )
+            {
+                if( s !== 's' )
+                {
+                    error['msg'] = "unexpected character `c`: ";
+                    return tokens;
+                }
+
+                if( c2 === "\\\\" || c2 === "\\n" || c2 === "\\r" || c2 === "\\t" || c2 === "\\\"" )
+                {
+                    token += c2;
+                    i++;
+                    continue;
+                }
+
+                error['msg'] = "unexpected character `c`: ";
+                return tokens;
+            }
+
+            if( c === '"' )
+            {
+                if( s === 's' )
+                {
+                    token += c;
+                    tokens.push( token );
+                    token = '';
+                    s = ' ';
+                }
+                else
+                {
+                    if( token !== '' )
+                    {
+                        tokens.push( token );
+                        token = "";
+                    }
+                    token += c;
+                    s = 's';
+                }
+
+                continue;
+            }
+
+            if( ( cn === '-' || cn === '+' ) && s === 'n' )
+            {
+                if( c.indexOf( "0123456789" ) !== -1 )
+                {
+                    token += c;
+                    tokens.push( token );
+                    token = '';
+                    continue;
+                }
+            }
+
+            if( c.indexOf( ".0123456789eE-" ) !== -1 )
+            {
+                if( s === 's' )
+                {
+                    token += c;
+                    continue;
+                }
+
+                if( s === ' ' )
+                {
+                    if( c.indexOf( ".0123456789-" ) !== -1 )
+                    {
+                        if( token !== '' )
+                        {
+                            tokens.push( token );
+                            token = "";
+                        }
+                        token += c;
+                        s = 'n';
+                        continue;
+                    }
+                }
+
+                if( s === 'y' && c === '.' )
+                {
+                    error['msg'] = "unexpected character `c`: ";
+                    return tokens;
+                }
+
+                if( s === 'y' && c === '-' )
+                {
+                    if( token !== '' )
+                    {
+                        tokens.push( token );
+                        token = "";
+                    }
+
+                    s = ' ';
+                    dec = false;
+                    exp = false;
+                    i--;
+                    continue;
+                }
+
+                if( s === 'n' && c.indexOf( "0123456789" ) !== -1 )
+                {
+                    token += c;
+                    continue;
+                }
+
+                if( s === 'n' && c === '.' )
+                {
+                    if( dec || exp )
+                    {
+                        error['msg'] = "unexpected character `c`: ";
+                        return tokens;
+                    }
+
+                    if( cn.indexOf( "0123456789" ) === -1 )
+                    {
+                        error['msg'] = "unexpected character `c`: ";
+                        return tokens;
+                    }
+
+                    dec = true;
+                    token += c;
+                    continue;
+                }
+
+                if( s === 'n' && ( c === 'e' || c === 'E' ) )
+                {
+                    if( exp )
+                    {
+                        error['msg'] = "unexpected character `c`: ";
+                        return tokens;
+                    }
+
+                    if( cn === '-' )
+                    {
+                        dec = false;
+                        exp = true;
+                        token += c + cn;
+                        i++;
+                        continue;
+                    }
+
+                    if( cn.indexOf( "0123456789" ) === -1 )
+                    {
+                        error['msg'] = "unexpected character `c`: ";
+                        return tokens;
+                    }
+
+                    dec = false;
+                    exp = true;
+
+                    token += c;
+                    continue;
+                }
+
+                if( s === 'n' || s === 's' && s !== 'y' )
+                {
+                    token += c;
+                }
+                else
+                {
+                    if( token !== '' )
+                    {
+                        tokens.push( token );
+                        token = "";
+                    }
+                    token += c;
+                    s = 'n';
+                }
+
+                continue;
+            }
+
+            if( c.indexOf( "_abcdefghijkilmnopqrstuvwxyzABCDEFGHIJKILMNOPQRSTUVXYZ0123456789:" ) !== -1 )
+            {
+                if( s === 'y' && c === ':' && ( i !== n - 1 || tokens.length !== 0 ) )
+                {
+                    error['msg'] = "unexpected character `:`: ";
+                    return tokens;
+                }
+
+                if( s === 'y' || s === 's' )
+                {
+                    token += c;
+                }
+                else
+                {
+                    if( token !== '' )
+                    {
+                        tokens.push( token );
+                        token = "";
+                    }
+                    token += c;
+                    s = 'y';
+                }
+
+                continue;
+            }
+
+            if( c.indexOf( "=<>!+-*/%" ) !== -1 )
+            {
+                if( s === 'o' || s === 's' )
+                {
+                    token += c;
+                }
+                else
+                {
+                    if( token !== '' )
+                    {
+                        tokens.push( token );
+                        token = "";
+                    }
+                    token += c;
+                    s = 'o';
+                }
+
+                continue;
+            }
+
+            if( s === 's' )
+            {
+                token += c;
+            }
+            else
+            {
+                error['msg'] = "unexpected character `c`: ";
+                return tokens;
+            }
+        }
+
+        if( token !== '' )
+        {
+            tokens.push( token );
+        }
+
+        return tokens;
+    };
+
+
     if( typeof( max_iterations ) === 'undefined' )
     {
         max_iterations = 1000;
