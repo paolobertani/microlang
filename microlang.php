@@ -122,7 +122,7 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
         $y++;
         $y1b = $y + 1;
 
-        $parts = explode( " ", $l );
+        $parts = microlang_tokenize( $l );
         $tokens = [];
         $n = count($parts);
         for( $i = 0; $i < $n; $i++ )
@@ -1069,3 +1069,148 @@ function microlang_chk( $tps, $line, $s1 = null, $x1 = null,
 
     return "";
 }
+
+
+
+function microlang_tokenize( $line, &$error )
+{
+    $error = "";
+
+    $tokens = [];
+
+    $n = mb_strlen( $line );
+    $token = "";
+    $s = ' '; // STATUS: ' ' space, 'o' operator, 's' string, 'n' number, 'y' symbol
+
+    for( $i = 0; $i < $n; $i++ )
+    {
+        $c = mb_substr( $line, $i, 1 );
+
+        if( $c === ' ' )
+        {
+            if( $s === 's' )
+            {
+                $token .= $c;
+                continue;
+            }
+
+            if( $s !== ' ' )
+            {
+                if( $token !== '' )
+                {
+                    $tokens[] = $token;
+                    $token = '';
+                }
+                $s = ' ';
+                continue;
+            }
+            else
+            {
+                continue;
+            }
+        }
+
+        if( $c === '"' )
+        {
+            if( $s === 's' )
+            {
+                $token .= $c;
+                $tokens[] = $token;
+                $token = '';
+                $s = ' ';
+            }
+            else
+            {
+                if( $token !== '' )
+                {
+                    $tokens[] = $token;
+                    $token = "";
+                }
+                $token .= $c;
+                $s = 's';
+            }
+
+            continue;
+        }
+
+        if( strpos( ".0123456789", $c ) !== false )
+        {
+            if( $s === 'n' || $s === 's' && $s !== 'y' )
+            {
+                $token .= $c;
+            }
+            else
+            {
+                if( $token !== '' )
+                {
+                    $tokens[] = $token;
+                    $token = "";
+                }
+                $token .= $c;
+                $s = 'n';
+            }
+
+            continue;
+        }
+
+        if( strpos( "_abcdefghijkilmnopqrstuvwxyzABCDEFGHIJKILMNOPQRSTUVXYZ0123456789:", $c ) !== false )
+        {
+            if( $s === 'y' || $s === 's' )
+            {
+                $token .= $c;
+            }
+            else
+            {
+                if( $token !== '' )
+                {
+                    $tokens[] = $token;
+                    $token = "";
+                }
+                $token .= $c;
+                $s = 'y';
+            }
+
+            continue;
+        }
+
+        if( strpos( "=<>!+-*/%", $c ) !== false )
+        {
+            if( $s === 'o' || $s === 's' )
+            {
+                $token .= $c;
+            }
+            else
+            {
+                if( $token !== '' )
+                {
+                    $tokens[] = $token;
+                    $token = "";
+                }
+                $token .= $c;
+                $s = 'o';
+            }
+
+            continue;
+        }
+
+        if( $s === 's' )
+        {
+            $token .= $c;
+        }
+        else
+        {
+            $error = "unexpected character `$c`: ";
+            return $token;
+        }
+    }
+
+    if( $token !== '' )
+    {
+        $tokens[] = $token;
+    }
+
+    return $tokens;
+}
+
+
+
