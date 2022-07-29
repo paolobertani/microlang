@@ -1085,6 +1085,7 @@ function microlang_tokenize( $line, &$error )
     for( $i = 0; $i < $n; $i++ )
     {
         $c = mb_substr( $line, $i, 1 );
+        $c2= mb_substr( $line, $i, 2 );
 
         if( $c === ' ' )
         {
@@ -1108,6 +1109,25 @@ function microlang_tokenize( $line, &$error )
             {
                 continue;
             }
+        }
+
+        if( $c === "\\" )
+        {
+            if( $s !== 's' )
+            {
+                $error = "unexpected character `$c`: ";
+                return $tokens;
+            }
+
+            if( $c2 === "\\\\" || $c2 === "\\n" || $c2 === "\\r" || $c2 === "\\t" || $c2 === "\\\"" )
+            {
+                $token .= $c2;
+                $i++;
+                continue;
+            }
+
+            $error = "unexpected character `$c`: ";
+            return $tokens;
         }
 
         if( $c === '"' )
@@ -1200,7 +1220,7 @@ function microlang_tokenize( $line, &$error )
         else
         {
             $error = "unexpected character `$c`: ";
-            return $token;
+            return $tokens;
         }
     }
 
