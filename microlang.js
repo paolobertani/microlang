@@ -89,6 +89,7 @@ function microlang( code, vars, max_iterations )
         t8x,
         label,
         err,
+        error,
         l,
         i1,
         i2,
@@ -602,6 +603,8 @@ function microlang( code, vars, max_iterations )
 
 
 
+    error = { 'msg': '' };
+
     max_str_len = 1024*1024;
 
     labels = {};
@@ -676,17 +679,14 @@ function microlang( code, vars, max_iterations )
         y++;
         y1b = y + 1;
 
-        parts = l.split( " " );
+        parts = microlang_tokenize( l, error );
+        if( error['msg'] !== '' ) return error['msg'] + y1b;
+
         tokens = [];
         n = parts.length;
         for( i = 0; i < n; i++ )
         {
             p = parts[i];
-
-
-            // Empty space
-
-            if( p === '' ) continue;
 
 
             // Keywords
@@ -695,12 +695,7 @@ function microlang( code, vars, max_iterations )
             {
                 tokens.push( { 'type': 'keyword', 'symbol': p, 'value': null, 'vtype': null } );
 
-                for( j = i + 1; j < n; j++ )
-                {
-                    if( parts[j] === '' ) continue;
-                    if( parts[j] === '=' ) return "keywords cannot be used for variable names";
-                    break;
-                }
+                if( i < n - 1 && parts[ i + 1 ] === '=' ) return "keywords cannot be used for variable names";
 
                 continue;
             }
@@ -712,7 +707,6 @@ function microlang( code, vars, max_iterations )
             {
                 p = p.substring( 0, p.length - 1 );
                 if( keywords.indexOf( p ) !== -1 ) return "keywords cannot be used for label names: " + y1b;
-                if( ! microlang_label_is_valid( p ) ) return "Invalid label: " + y1b;
                 tokens.push( { 'type': 'label', 'symbol': p, 'value': y, 'vtype': null } );
                 if( typeof( labels[p] ) !== 'undefined' ) return "Label " + p + " duplicate: " + y1b;
                 labels[p] = y;
@@ -721,7 +715,7 @@ function microlang( code, vars, max_iterations )
 
             if( p.slice( -1 ) === ":" && i > 0 )
             {
-                return "Unexpected label: " + y1b;
+                return "unexpected label: " + y1b;
             }
 
 
@@ -741,31 +735,18 @@ function microlang( code, vars, max_iterations )
                     continue;
                 }
 
-                value = p.substring( 1, p.length );
-                string_closed = false;
-                for( j = i + 1; j < n; j++ )
-                {
-                    pp = parts[j];
+                value = p.substring( 1, p.length - 1 );
 
-                    if( pp.slice( -1 ) === '"' )
-                    {
-                        value += ' ' + pp.substring( 0, pp.length - 1 );
-                        string_closed = true;
-                        break;
-                    }
-                    value += ' ' + pp;
-                }
-                if( ! string_closed ) return "string not closed: " + y1b;
+                if( p.substring( p.length - 1, p.length ) !== '"' ) return "string not closed: " + y1b;
 
                 tokens.push( { 'type': 'value', 'symbol': null, 'value': value, 'vtype': 'string' } );
-                i = j;
                 continue;
             }
 
 
             // Integers
 
-            if( /^-?\d+$/.test( p ) )
+            if( /^-?\d+(?:e\d+|E\d+|e-\d+|E-\d+)?$/.test( p ) )
             {
                 if( parseFloat( p ) > 9223372036854775807 || parseFloat( p ) < -9223372036854775808 ) return "overflow: " + y1b;
 
@@ -776,7 +757,7 @@ function microlang( code, vars, max_iterations )
 
             // Floats
 
-            if( /^-?\d+\.\d+$/.test( p ) )
+            if( /^-?\d+\.\d+(?:e\d+|E\d+|e-\d+|E-\d+)?$/.test( p ) )
             {
                 tokens.push( { 'type': 'value', 'symbol': null, 'value': parseFloat(p), 'vtype': 'float' } );
                 continue;
@@ -785,7 +766,6 @@ function microlang( code, vars, max_iterations )
 
             // Variable names
 
-            if( ! microlang_label_is_valid( p ) ) return "Invalid variable name: " + y1b + " " + p;
             tokens.push( { 'type': 'variable', 'symbol': p, 'value': null, 'vtype': null } );
 
         }

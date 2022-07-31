@@ -122,17 +122,14 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
         $y++;
         $y1b = $y + 1;
 
-        $parts = microlang_tokenize( $l );
+        $parts = microlang_tokenize( $l, $error );
+        if( $error !== '' ) return "$error$y1b";
+
         $tokens = [];
         $n = count($parts);
         for( $i = 0; $i < $n; $i++ )
         {
             $p = $parts[$i];
-
-
-            // Empty space
-
-            if( $p === '' ) continue;
 
 
             // Keywords
@@ -141,12 +138,7 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
             {
                 $tokens[] = ['type' => 'keyword', 'symbol' => $p, 'value' => null, 'vtype' => null ];
 
-                for( $j = $i + 1; $j < $n; $j++ )
-                {
-                    if( $parts[$j] === '' ) continue;
-                    if( $parts[$j] === '=' ) return "keywords cannot be used for variable names: $y1b";
-                    break;
-                }
+                if( $i < $n - 1 && $parts[ $i + 1 ] === '=' ) return "keywords cannot be used for variable names: $y1b";
 
                 continue;
             }
@@ -158,7 +150,6 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
             {
                 $p = mb_substr( $p, 0, -1 );
                 if( in_array( $p, $keywords ) ) return "keywords cannot be used for label names: $y1b";
-                if( ! microlang_label_is_valid( $p ) ) return "Invalid label: $y1b";
                 $tokens[] = ['type' => 'label', 'symbol' => $p, 'value' => $y, 'vtype' => null ];
                 if( isset( $labels[$p] ) ) return "Label $p duplicate: $y1b";
                 $labels[$p] = $y;
@@ -167,7 +158,7 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
 
             if( substr( $p, -1, 1 ) === ":" && $i > 0 )
             {
-                return "Unexpected label: $y1b";
+                return "unexpected label: $y1b";
             }
 
 
@@ -187,31 +178,18 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
                     continue;
                 }
 
-                $value = substr( $p, 1 );
-                $closed = false;
-                for( $j = $i + 1; $j < $n; $j++ )
-                {
-                    $pp = $parts[$j];
+                $value = substr( $p, 1, -1 );
 
-                    if( substr( $pp, -1, 1) == '"' )
-                    {
-                        $value .= ' ' . substr( $pp, 0, -1 );
-                        $closed = true;
-                        break;
-                    }
-                    $value .= ' ' . $pp;
-                }
-                if( ! $closed ) return "string not closed: $y1b";
+                if( substr( $p, -1, 1 ) !== '"' ) return "string not closed: $y1b";
 
                 $tokens[] = ['type' => 'value', 'symbol' => null, 'value' => $value, 'vtype' => 'string' ];
-                $i = $j;
                 continue;
             }
 
 
             // Integers
 
-            if( preg_match( '/^-?\d+$/', $p ) === 1 )
+            if( preg_match( '/^-?\d+(?:e\d+|E\d+|e-\d+|E-\d+)?$/', $p ) === 1 )
             {
                 if( floatval( $p ) > PHP_INT_MAX || floatval( $p ) < PHP_INT_MIN ) return "overflow: $y1b";
 
@@ -222,7 +200,7 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
 
             // Floats
 
-            if( preg_match( '/^-?\d+\.\d+$/', $p ) === 1 )
+            if( preg_match( '/^-?\d+\.\d+(?:e\d+|E\d+|e-\d+|E-\d+)?$/', $p ) === 1 )
             {
                 $tokens[] = ['type' => 'value', 'symbol' => null, 'value' => floatval($p), 'vtype' => 'float' ];
                 continue;
@@ -231,7 +209,6 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
 
             // Variable names
 
-            if( ! microlang_label_is_valid( $p ) ) return "Invalid variable name: $y1b $p";
             $tokens[] = ['type' => 'variable', 'symbol' => $p, 'value' => null, 'vtype' => null ];
 
         }
