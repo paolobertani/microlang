@@ -917,27 +917,6 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
 
 
 
-function microlang_label_is_valid( $lab )
-{
-    $n = mb_strlen( $lab );
-    if( $n === 0 )
-    {
-        return false;
-    }
-    for( $i = 0; $i < $n; $i++ )
-    {
-        $c = mb_substr( $lab, $i, 1 );
-
-        if( $i === 0 && mb_strpos( "abcdefghjkilmnopqrtsuvwxyzABCDEFGHJKILMNOPQRSTUVWXYZ_", $c ) !== false ) continue;
-        if( $i >   0 && mb_strpos( "abcdefghjkilmnopqrtsuvwxyzABCDEFGHJKILMNOPQRSTUVWXYZ_0123456789", $c ) !== false ) continue;
-
-        return false;
-    }
-    return true;
-}
-
-
-
 function microlang_vv( $t1 = null, $t2 = null, $t3 = null, $t4 = null, $t5 = null, $t6 = null )
 {
     if( ( $t1 === null || $t1 === 'variable' || $t1 === 'value' ) &&

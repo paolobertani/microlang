@@ -115,29 +115,6 @@ function microlang( code, vars, max_iterations )
 
 
 
-    var microlang_label_is_valid = function( lab )
-    {
-        var i,n,c;
-
-        n = lab.length;
-        if( n === 0 )
-        {
-            return false;
-        }
-        for( i = 0; i < n; i++ )
-        {
-            c = lab[i];
-
-            if( i === 0 && "abcdefghjkilmnopqrtsuvwxyzABCDEFGHJKILMNOPQRSTUVWXYZ_".indexOf( c ) !== -1 ) continue;
-            if( i >   0 && "abcdefghjkilmnopqrtsuvwxyzABCDEFGHJKILMNOPQRSTUVWXYZ_0123456789".indexOf( c ) !== false ) continue;
-
-            return false;
-        }
-        return true;
-    };
-
-
-
     var microlang_vv = function( t1, t2, t3, t4, t5, t6 )
     {
         if( typeof( t1 ) === 'undefined' ) t1 = null;
@@ -259,7 +236,7 @@ function microlang( code, vars, max_iterations )
             x = x6;
             n = 6;
 
-            if( x === null )                                return "undefined xariable " + s + ": " + line;
+            if( x === null )                                return "undefined variable " + s + ": " + line;
             if( t === 'S' && x !== 'string' )               return "parameter " + n + " must be string: " + line;
             if( t === 'I' && x !== 'int'    )               return "parameter " + n + " must be integer: " + line;
             if( t === 'F' && x !== 'float'  )               return "parameter " + n + " must be float: " + line;
