@@ -22,5 +22,5 @@ finish:
 exit
 
 bad_input:
-  result = "`end`must be equal or greater than `start`"
+  result = "`end` must be equal or greater than `start`"
 exit
