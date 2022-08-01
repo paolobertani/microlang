@@ -37,7 +37,6 @@ function microlang( code, vars, max_iterations )
         value,
         i,
         n,
-        j,
         idx,
         newlines,
         t,
@@ -48,8 +47,6 @@ function microlang( code, vars, max_iterations )
         parts,
         tokens,
         p,
-        string_closed,
-        pp,
         lines_count,
         iter,
         done,
@@ -281,11 +278,11 @@ function microlang( code, vars, max_iterations )
             n,
             s,
             token,
-            dec,
-            exp,
+            p,
             c,
             c2,
-            cn;
+            cn,
+            cp;
 
         error['msg'] = '';
 
@@ -293,16 +290,15 @@ function microlang( code, vars, max_iterations )
 
         n = line.length;
         token = "";
-        s = ' '; // STATUS: ' ' space, 'o' operator, 's' string, 'n' number, 'y' symbol
-
-        dec = false;
-        exp = false;
+        s = ' '; // currently parsing: ' ' nothing, 'o' operator, 's' string, 'n' number, 'y' symbol (keyword, variable, label)
+        p = ' '; // number; currently parsing: ' ' not a number, 'i' integer part, 'd' decimal part, 'e' exponent
 
         for( i = 0; i < n; i++ )
         {
-            c = line.substring( i, i + 1 );
-            c2= line.substring( i, i + 2 );
-            cn= line.substring( i + 1, i + 2 );
+            c  = line.substring( i, i + 1 );
+            c2 = line.substring( i, i + 2 );
+            cn = line.substring( i + 1, i + 2 );
+            cp = line.substring( i - 1, i );
 
             if( c === ' ' )
             {
@@ -312,29 +308,22 @@ function microlang( code, vars, max_iterations )
                     continue;
                 }
 
-                if( s !== ' ' )
+                if( token !== '' )
                 {
-                    if( token !== '' )
-                    {
-                        tokens.push( token );
-                        token = '';
-                    }
-                    dec = false;
-                    exp = false;
-                    s = ' ';
-                    continue;
+                    tokens.push( token );
+                    token = '';
                 }
-                else
-                {
-                    continue;
-                }
+
+                p = ' ';
+                s = ' ';
+                continue;
             }
 
             if( c === "\\" )
             {
                 if( s !== 's' )
                 {
-                    error['msg'] = "unexpected character `c`: ";
+                    error['msg'] = "unexpected escape character `" + c + "`: ";
                     return tokens;
                 }
 
@@ -344,8 +333,10 @@ function microlang( code, vars, max_iterations )
                     i++;
                     continue;
                 }
-
-                error['msg'] = "unexpected character `c`: ";
+                else
+                {
+                    error['msg'] = "unrecognized escape sequence `" + c2 + "`: ";
+                }
                 return tokens;
             }
 
@@ -357,33 +348,43 @@ function microlang( code, vars, max_iterations )
                     tokens.push( token );
                     token = '';
                     s = ' ';
-                }
-                else
-                {
-                    if( token !== '' )
-                    {
-                        tokens.push( token );
-                        token = "";
-                    }
-                    token += c;
-                    s = 's';
+                    p = ' ';
+                    continue;
                 }
 
+                if( token !== '' )
+                {
+                    tokens.push( token );
+                    token = "";
+                }
+
+                token += c;
+                s = 's';
+                p = ' ';
                 continue;
             }
 
-            if( ( cn === '-' || cn === '+' ) && s === 'n' )
+            if( "0123456789".indexOf( c ) !== -1 )
             {
-                if( c.indexOf( "0123456789" ) !== -1 )
+                if( s === 's' || s === 'y' || s === 'n' )
                 {
                     token += c;
-                    tokens.push( token );
-                    token = '';
                     continue;
                 }
+
+                if( token !== '' )
+                {
+                    tokens.push( token );
+                    token = "";
+                }
+
+                token += c;
+                s = 'n';
+                p = 'i';
+                continue;
             }
 
-            if( c.indexOf( ".0123456789eE-" ) !== -1 )
+            if( c === '.' )
             {
                 if( s === 's' )
                 {
@@ -391,175 +392,200 @@ function microlang( code, vars, max_iterations )
                     continue;
                 }
 
-                if( s === ' ' )
+                if( s === 'n' )
                 {
-                    if( c.indexOf( ".0123456789-" ) !== -1 )
+                    if( p === 'i' )
                     {
-                        if( token !== '' )
-                        {
-                            tokens.push( token );
-                            token = "";
-                        }
                         token += c;
-                        s = 'n';
+                        p = 'd';
                         continue;
+                    }
+                    else
+                    {
+                        error['msg'] = "unexpected character `" + c + "`: ";
+                        return tokens;
                     }
                 }
 
-                if( s === 'y' && c === '.' )
-                {
-                    error['msg'] = "unexpected character `c`: ";
-                    return tokens;
-                }
-
-                if( s === 'y' && c === '-' )
+                if( s === 'o' || s === 'y' )
                 {
                     if( token !== '' )
                     {
                         tokens.push( token );
                         token = "";
                     }
-
-                    s = ' ';
-                    dec = false;
-                    exp = false;
-                    i--;
-                    continue;
                 }
 
-                if( s === 'n' && c.indexOf( "0123456789" ) !== -1 )
+                if( "0123456789".indexOf( cn ) !== -1 )
                 {
-                    token += c;
-                    continue;
-                }
-
-                if( s === 'n' && c === '.' )
-                {
-                    if( dec || exp )
-                    {
-                        error['msg'] = "unexpected character `c`: ";
-                        return tokens;
-                    }
-
-                    if( cn.indexOf( "0123456789" ) === -1 )
-                    {
-                        error['msg'] = "unexpected character `c`: ";
-                        return tokens;
-                    }
-
-                    dec = true;
-                    token += c;
-                    continue;
-                }
-
-                if( s === 'n' && ( c === 'e' || c === 'E' ) )
-                {
-                    if( exp )
-                    {
-                        error['msg'] = "unexpected character `c`: ";
-                        return tokens;
-                    }
-
-                    if( cn === '-' )
-                    {
-                        dec = false;
-                        exp = true;
-                        token += c + cn;
-                        i++;
-                        continue;
-                    }
-
-                    if( cn.indexOf( "0123456789" ) === -1 )
-                    {
-                        error['msg'] = "unexpected character `c`: ";
-                        return tokens;
-                    }
-
-                    dec = false;
-                    exp = true;
-
-                    token += c;
-                    continue;
-                }
-
-                if( s === 'n' || s === 's' && s !== 'y' )
-                {
-                    token += c;
-                }
-                else
-                {
-                    if( token !== '' )
-                    {
-                        tokens.push( token );
-                        token = "";
-                    }
-                    token += c;
+                    token += "0" + c;
                     s = 'n';
+                    p = 'd';
+                    continue;
                 }
 
-                continue;
+                error['msg'] = "unexpected character `" + c + "`: ";
+                return tokens;
             }
 
-            if( c.indexOf( "_abcdefghijkilmnopqrstuvwxyzABCDEFGHIJKILMNOPQRSTUVXYZ0123456789:" ) !== -1 )
+            if( c === '-' )
             {
-                if( s === 'y' && c === ':' && ( i !== n - 1 || tokens.length !== 0 ) )
-                {
-                    error['msg'] = "unexpected character `:`: ";
-                    return tokens;
-                }
-
-                if( s === 'y' || s === 's' )
+                if( s === 's' )
                 {
                     token += c;
-                }
-                else
-                {
-                    if( token !== '' )
-                    {
-                        if( token === '.' )
-                        {
-                            error['msg'] = "unexpected character `" + c + "`: ";
-                            return tokens;
-                        }
-                        tokens.push( token );
-                        token = "";
-                    }
-                    token += c;
-                    s = 'y';
+                    continue;
                 }
 
-                continue;
-            }
-
-            if( c.indexOf( "=<>!+-*/%" ) !== -1 )
-            {
-                if( s === 'o' || s === 's' )
-                {
-                    token += c;
-                }
-                else
+                if( s === ' ' || s === 'y' || s === 'o' )
                 {
                     if( token !== '' )
                     {
                         tokens.push( token );
                         token = "";
                     }
+
                     token += c;
-                    s = 'o';
+
+                    if( "0123456789".indexOf( cn ) !== -1 )
+                    {
+                        s = 'n';
+                        p = 'i';
+                        continue;
+                    }
+
+                    if( cn === '.' )
+                    {
+                        s = 'n';
+                        p = 'i';
+                        continue;
+                    }
+
+                    tokens.push( token );
+                    token = "";
+                    s = ' ';
+                    p = ' ';
+                    continue;
                 }
 
+                if( s === 'n' && p === 'e' && ( cp === 'e' || cp === 'E' ) )
+                {
+                    token += c;
+                    continue;
+                }
+            }
+
+            if( c === 'e' || c === 'E' )
+            {
+                if( s === 's' )
+                {
+                    token += c;
+                    continue;
+                }
+
+                if( s === 'n' && ( p === 'i' || p === 'd' ) )
+                {
+                    token += c;
+                    p = 'e';
+                    continue;
+                }
+
+                if( s === 'y' )
+                {
+                    token += c;
+                    p = 'e';
+                    continue;
+                }
+
+                if( token !== '' )
+                {
+                    tokens.push( token );
+                    token = "";
+                }
+
+                token += c;
+                s = 'y';
+                p = ' ';
+                continue;
+            }
+
+            if( "=<>!+-*/%".indexOf( c ) !== -1 )
+            {
+                if( s === 's' )
+                {
+                    token += c;
+                    continue;
+                }
+
+                if( s === 'o' )
+                {
+                    token += c;
+                    continue;
+                }
+
+                if( token !== '' )
+                {
+                    tokens.push( token );
+                    token = "";
+                }
+
+                token += c;
+                s = 'o';
+                p = ' ';
+                continue;
+            }
+
+            if( c === ':' )
+            {
+                if( s === 's' )
+                {
+                    token += c;
+                    continue;
+                }
+
+                if( s === 'y' && i === ( n - 1 ) )
+                {
+                    token += c;
+                    continue;
+                }
+
+                error['msg'] = "unexpected character `" + c + "`: ";
+                return tokens;
+            }
+
+            if( "_$abcdefghijkilmnopqrstuvwxyzABCDEFGHIJKILMNOPQRSTUVXYZ".indexOf( c ) !== -1 )
+            {
+                if( s === 's' )
+                {
+                    token += c;
+                    continue;
+                }
+
+                if( s === 'y' )
+                {
+                    token += c;
+                    continue;
+                }
+
+                if( token !== '' )
+                {
+                    tokens.push( token );
+                    token = "";
+                }
+
+                token += c;
+                s = 'y';
+                p = ' ';
                 continue;
             }
 
             if( s === 's' )
             {
                 token += c;
+                continue;
             }
-            else
-            {
-                error['msg'] = "unexpected character `c`: ";
-                return tokens;
-            }
+
+            error['msg'] = "unexpected character `" + c + "`: ";
+            return tokens;
         }
 
         if( token !== '' )
@@ -679,6 +705,7 @@ function microlang( code, vars, max_iterations )
         y++;
         y1b = y + 1;
 
+        if( y1b === 1 ) debugger;
         parts = microlang_tokenize( l, error );
         if( error['msg'] !== '' ) return error['msg'] + y1b;
 
@@ -750,14 +777,14 @@ function microlang( code, vars, max_iterations )
             {
                 if( parseFloat( p ) > 9223372036854775807 || parseFloat( p ) < -9223372036854775808 ) return "overflow: " + y1b;
 
-                tokens.push( { 'type': 'value', 'symbol': null, 'value': parseInt(p), 'vtype': 'int' } );
+                tokens.push( { 'type': 'value', 'symbol': null, 'value': parseInt( parseFloat(p) ), 'vtype': 'int' } );
                 continue;
             }
 
 
             // Floats
 
-            if( /^-?\d+\.\d+(?:e\d+|E\d+|e-\d+|E-\d+)?$/.test( p ) )
+            if( /^-?\d*\.\d+(?:e\d+|E\d+|e-\d+|E-\d+)?$/.test( p ) )
             {
                 tokens.push( { 'type': 'value', 'symbol': null, 'value': parseFloat(p), 'vtype': 'float' } );
                 continue;

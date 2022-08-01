@@ -200,7 +200,7 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
 
             // Floats
 
-            if( preg_match( '/^-?\d+\.\d+(?:e\d+|E\d+|e-\d+|E-\d+)?$/', $p ) === 1 )
+            if( preg_match( '/^-?\d*\.\d+(?:e\d+|E\d+|e-\d+|E-\d+)?$/', $p ) === 1 )
             {
                 $tokens[] = ['type' => 'value', 'symbol' => null, 'value' => floatval($p), 'vtype' => 'float' ];
                 continue;
@@ -1057,16 +1057,15 @@ function microlang_tokenize( $line, &$error )
 
     $n = mb_strlen( $line );
     $token = "";
-    $s = ' '; // STATUS: ' ' space, 'o' operator, 's' string, 'n' number, 'y' symbol
-
-    $dec = false;
-    $exp = false;
+    $s = ' '; // currently parsing: ' ' nothing, 'o' operator, 's' string, 'n' number, 'y' symbol (keyword, variable, label)
+    $p = ' '; // number; currently parsing: ' ' not a number, 'i' integer part, 'd' decimal part, 'e' exponent
 
     for( $i = 0; $i < $n; $i++ )
     {
-        $c = mb_substr( $line, $i, 1 );
-        $c2= mb_substr( $line, $i, 2 );
-        $cn= mb_substr( $line, $i + 1, 1 );
+        $c  = mb_substr( $line, $i, 1 );
+        $c2 = mb_substr( $line, $i, 2 );
+        $cn = mb_substr( $line, $i + 1, 1 );
+        $cp = $i > 0 ? mb_substr( $line, $i - 1, 1 ) : '';
 
         if( $c === ' ' )
         {
@@ -1076,29 +1075,22 @@ function microlang_tokenize( $line, &$error )
                 continue;
             }
 
-            if( $s !== ' ' )
+            if( $token !== '' )
             {
-                if( $token !== '' )
-                {
-                    $tokens[] = $token;
-                    $token = '';
-                }
-                $dec = false;
-                $exp = false;
-                $s = ' ';
-                continue;
+                $tokens[] = $token;
+                $token = '';
             }
-            else
-            {
-                continue;
-            }
+
+            $p = ' ';
+            $s = ' ';
+            continue;
         }
 
         if( $c === "\\" )
         {
             if( $s !== 's' )
             {
-                $error = "unexpected character `$c`: ";
+                $error = "unexpected escape character `$c`: ";
                 return $tokens;
             }
 
@@ -1109,7 +1101,7 @@ function microlang_tokenize( $line, &$error )
                 continue;
             }
 
-            $error = "unexpected character `$c`: ";
+            $error = "unrecognized escape sequence `$c2`: ";
             return $tokens;
         }
 
@@ -1121,33 +1113,43 @@ function microlang_tokenize( $line, &$error )
                 $tokens[] = $token;
                 $token = '';
                 $s = ' ';
-            }
-            else
-            {
-                if( $token !== '' )
-                {
-                    $tokens[] = $token;
-                    $token = "";
-                }
-                $token .= $c;
-                $s = 's';
+                $p = ' ';
+                continue;
             }
 
+            if( $token !== '' )
+            {
+                $tokens[] = $token;
+                $token = "";
+            }
+
+            $token .= $c;
+            $s = 's';
+            $p = ' ';
             continue;
         }
 
-        if( ( $cn === '-' || $cn === '+' ) && $s === 'n' )
+        if( strpos( "0123456789", $c ) !== false )
         {
-            if( strpos( "0123456789", $c ) !== false )
+            if( $s === 's' || $s === 'y' || $s === 'n' )
             {
                 $token .= $c;
-                $tokens[] = $token;
-                $token = '';
                 continue;
             }
+
+            if( $token !== '' )
+            {
+                $tokens[] = $token;
+                $token = "";
+            }
+
+            $token .= $c;
+            $s = 'n';
+            $p = 'i';
+            continue;
         }
 
-        if( strpos( ".0123456789eE-", $c ) !== false )
+        if( $c === '.' )
         {
             if( $s === 's' )
             {
@@ -1155,175 +1157,200 @@ function microlang_tokenize( $line, &$error )
                 continue;
             }
 
-            if( $s === ' ' )
+            if( $s === 'n' )
             {
-                if( strpos( ".0123456789-", $c ) !== false )
+                if( $p === 'i' )
                 {
-                    if( $token !== '' )
-                    {
-                        $tokens[] = $token;
-                        $token = "";
-                    }
-                    $token .= $c;
-                    $s = 'n';
+                    $token .= c;
+                    $p = 'd';
                     continue;
+                }
+                else
+                {
+                    $error['msg'] = "unexpected character `$c`: ";
+                    return tokens;
                 }
             }
 
-            if( $s === 'y' && $c === '.' )
-            {
-                $error = "unexpected character `$c`: ";
-                return $tokens;
-            }
-
-            if( $s === 'y' && $c === '-' )
+            if( $s === 'o' || $s === 'y' )
             {
                 if( $token !== '' )
                 {
                     $tokens[] = $token;
                     $token = "";
                 }
-
-                $s = ' ';
-                $dec = false;
-                $exp = false;
-                $i--;
-                continue;
             }
 
-            if( $s === 'n' && strpos( "0123456789", $c ) !== false )
+            if( strpos( "0123456789", $cn ) !== false )
             {
-                $token .= $c;
-                continue;
-            }
-
-            if( $s === 'n' && $c === '.' )
-            {
-                if( $dec || $exp )
-                {
-                    $error = "unexpected character `$c`: ";
-                    return $tokens;
-                }
-
-                if( strpos( "0123456789", $cn ) === false )
-                {
-                    $error = "unexpected character `$c`: ";
-                    return $tokens;
-                }
-
-                $dec = true;
-                $token .= $c;
-                continue;
-            }
-
-            if( $s === 'n' && ( $c === 'e' || $c === 'E' ) )
-            {
-                if( $exp )
-                {
-                    $error = "unexpected character `$c`: ";
-                    return $tokens;
-                }
-
-                if( $cn === '-' )
-                {
-                    $dec = false;
-                    $exp = true;
-                    $token .= $c . $cn;
-                    $i++;
-                    continue;
-                }
-
-                if( strpos( "0123456789", $cn ) === false )
-                {
-                    $error = "unexpected character `$c`: ";
-                    return $tokens;
-                }
-
-                $dec = false;
-                $exp = true;
-
-                $token .= $c;
-                continue;
-            }
-
-            if( $s === 'n' || $s === 's' && $s !== 'y' )
-            {
-                $token .= $c;
-            }
-            else
-            {
-                if( $token !== '' )
-                {
-                    $tokens[] = $token;
-                    $token = "";
-                }
-                $token .= $c;
+                $token .= "0" + $c;
                 $s = 'n';
+                $p = 'd';
+                continue;
             }
 
-            continue;
+            $error['msg'] = "unexpected character `$c`: ";
+            return tokens;
         }
 
-        if( strpos( "_abcdefghijkilmnopqrstuvwxyzABCDEFGHIJKILMNOPQRSTUVXYZ0123456789:", $c ) !== false )
+        if( $c === '-' )
         {
-            if( $s === 'y' && $c === ':' && ( $i !== $n - 1 || count( $tokens ) !== 0 ) )
-            {
-                $error = "unexpected character `:`: ";
-                return $tokens;
-            }
-
-            if( $s === 'y' || $s === 's' )
+            if( $s === 's' )
             {
                 $token .= $c;
+                continue;
             }
-            else
+
+            if( $s === ' ' || $s === 'y' || $s === 'o' )
             {
                 if( $token !== '' )
                 {
-                    if( $token === '.' )
-                    {
-                        $error = "unexpected character `$c`: ";
-                        return $tokens;
-                    }
                     $tokens[] = $token;
                     $token = "";
                 }
+
                 $token .= $c;
-                $s = 'y';
+
+                if( strpos( "0123456789", $cn ) !== false )
+                {
+                    $s = 'n';
+                    $p = 'i';
+                    continue;
+                }
+
+                if( $cn === '.' )
+                {
+                    $s = 'n';
+                    $p = 'i';
+                    continue;
+                }
+
+                $tokens[] = $token;
+                $token = "";
+                $s = ' ';
+                $p = ' ';
+                continue;
             }
 
+            if( $s === 'n' && $p === 'e' && ( $cp === 'e' || $cp === 'E' ) )
+            {
+                $token .= $c;
+                continue;
+            }
+        }
+
+        if( $c === 'e' || $c === 'E' )
+        {
+            if( $s === 's' )
+            {
+                $token .= $c;
+                continue;
+            }
+
+            if( $s === 'n' && ( $p === 'i' || $p === 'd' ) )
+            {
+                $token .= $c;
+                $p = 'e';
+                continue;
+            }
+
+            if( $s === 'y' )
+            {
+                $token .= $c;
+                $p = 'e';
+                continue;
+            }
+
+            if( $token !== '' )
+            {
+                $tokens[] = $token;
+                $token = "";
+            }
+
+            $token .= $c;
+            $s = 'y';
+            $p = ' ';
             continue;
         }
 
         if( strpos( "=<>!+-*/%", $c ) !== false )
         {
-            if( $s === 'o' || $s === 's' )
+            if( $s === 's' )
             {
                 $token .= $c;
-            }
-            else
-            {
-                if( $token !== '' )
-                {
-                    $tokens[] = $token;
-                    $token = "";
-                }
-                $token .= $c;
-                $s = 'o';
+                continue;
             }
 
+            if( $s === 'o' )
+            {
+                $token .= $c;
+                continue;
+            }
+
+            if( $token !== '' )
+            {
+                $tokens[] = $token;
+                $token = "";
+            }
+
+            $token .= $c;
+            $s = 'o';
+            $p = ' ';
+            continue;
+        }
+
+        if( $c === ':' )
+        {
+            if( $s === 's' )
+            {
+                $token .= $c;
+                continue;
+            }
+
+            if( $s === 'y' && $i === ( $n - 1 ) )
+            {
+                $token .= $c;
+                continue;
+            }
+
+            $error['msg'] = "unexpected character `$c`: ";
+            return $tokens;
+        }
+
+        if( strpos( '_$abcdefghijkilmnopqrstuvwxyzABCDEFGHIJKILMNOPQRSTUVXYZ', $c ) !== false )
+        {
+            if( $s === 's' )
+            {
+                $token .= $c;
+                continue;
+            }
+
+            if( $s === 'y' )
+            {
+                $token .= $c;
+                continue;
+            }
+
+            if( $token !== '' )
+            {
+                $tokens[] = $token;
+                $token = "";
+            }
+
+            $token .= $c;
+            $s = 'y';
+            $p = ' ';
             continue;
         }
 
         if( $s === 's' )
         {
             $token .= $c;
+            continue;
         }
-        else
-        {
-            $error = "unexpected character `$c`: ";
-            return $tokens;
-        }
+
+        $error['msg'] = "unexpected character `$c`: ";
+        return $tokens;
     }
 
     if( $token !== '' )
