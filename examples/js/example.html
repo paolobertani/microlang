@@ -83,7 +83,7 @@ result = ""
 idx = start
 
 loop:
-  idx_str = string idx // cast idx to string
+  idx_str = string( idx ) // cast idx to string
   result = result + idx_str
   result = result + " "
 
@@ -91,9 +91,9 @@ loop:
 if idx > end then finish else loop
 
 finish: // remove the trailing space
-  l = len result
+  l = len( result )
   l = l - 1
-  result = substring result 0 l
+  result = substring( result, 0, l )
 exit
 
 bad_input:
