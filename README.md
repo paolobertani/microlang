@@ -3,9 +3,9 @@
 
 
 
-`language version 1.1`
+`language version 1.2`
 
-`interpreters version 1.1.1`
+`interpreters version 1.2.0`
 
 -
 
@@ -90,7 +90,7 @@ c = 12.3 // float
 
 Variables names are case sensitive.
 
-Allowed characters are `azAZ09_` variable name must not start with a number.
+Allowed characters are `azAZ09_$` variable name must not start with a number.
 
 Variable types are string, integer signed number or float.
 
@@ -112,24 +112,24 @@ To let a literal number be considered float a decimal separator must be included
 
 ```
 a = "123"
-b = int a // b = 123
+b = int( a ) // b = 123
 ```
 
 ```
 a = 123
-b = string a // b = "123"
+b = string( a ) // b = "123"
 ```
 
 ```
 a = "12.3"
-b = float a // b = 12.3
+b = float( a ) // b = 12.3
 ```
 
 Casting success or failure can be detected by inspecting the variable `cast_failed` whose value can be `0` (failed) or `1` (success).
 
 ```
 a = "1b"
-b = int a 
+b = int( a ) 
 // b = 0
 // cast_failed = 1
 ```
@@ -154,13 +154,13 @@ Both operands must be of the same type
 
 ```
 a = b + c // concatenation (where `b` and `c` are strings)
-a = substring b 3 5 // 5 characters from position 3 (index 0 based)
-a = between b "(" ")" // the text between the markers `(` and `)`
-a = between b "" "x" // the text between the beginning and "x"
-a = between b "x" "" // the text between "x" and the end of the string
-a = trim b // removes leading and trailing spaces
-idx = position a b // the starting position of `b` in `a`, -1 if not found
-l = len a // the length of the string
+a = substring( b, 3, 5, )   // 5 characters from position 3 (index 0 based)
+a = between( b, "(", ")" )  // the text between the markers `(` and `)`
+a = between( b, "", "x" )   // the text between the beginning and "x"
+a = between( b, "x", "" )   // the text between "x" and the end of the string
+a = trim( b )               // removes leading and trailing spaces
+idx = position( a, b )      // the starting position of `b` in `a`, -1 if not found
+l = len( a )                // the length of the string
 ```
 
 &nbsp;
@@ -168,7 +168,7 @@ l = len a // the length of the string
 **Type detection:**
 
 ```
-a = typeof b // "string", "int" or "float"
+a = typeof( b ) // "string", "int" or "float"
 ```
 
 &nbsp;
@@ -205,19 +205,19 @@ exit "something wrong" // the specified string is returned as error
 // separated by space
 
 result = ""
-i = number a
-j = number b
+i = int( a )
+j = int( b )
 
 loop:
     if i > j then finish
-    t = string i
+    t = string( i )
     result = result + t
     result = result + " "
     i = i + 1
 goto loop
 
 finish:
-    result = trim result
+    result = trim( result )
     exit
 ```
 
@@ -236,7 +236,7 @@ This is due to the JavaScript language.
 To solve this issue cast `x` to `float` at the beginning of the microlang program.
 
 ```
-x = float x
+x = float( x )
 ``` 
 
 &nbsp;
