@@ -198,6 +198,22 @@ exit "something wrong" // the specified string is returned as error
 
 &nbsp;
 
+**Formulas and expressions**
+
+Formulas / expression are not allowed.
+
+Examples:
+
+```
+a = b + c + d // not allowed
+
+x = substring( y, position( y, "text" ), 5 ) // not allowed
+```
+
+This is to be considered **not a language specification** but a limitation of the actual interpreters instead.
+
+&nbsp;
+
 ### Example
 
 ```
