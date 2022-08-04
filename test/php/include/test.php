@@ -10,6 +10,8 @@ require $clean;
 
 require_once ROOT_PATH . '/../../microlang.php';
 
+enumerate_tests();
+
 function do_assert( $assertion = null )
 {
     global $microlang_test_number;
@@ -119,4 +121,21 @@ function numbercode( $code )
     }
     $out = trim( $out );
     return $out;
+}
+
+function enumerate_tests()
+{
+    $index = 1;
+    $code = file_get_contents( SCRP_PATH );
+    $code = explode( "\n", $code );
+    foreach( $code as &$line )
+    {
+        if( substr( $line, 0, 7 ) === '// Test')
+        {
+            $line = "// Test $index";
+            $index++;
+        }
+    }
+    $code = implode( "\n", $code );
+    file_put_contents( SCRP_PATH, $code );
 }
