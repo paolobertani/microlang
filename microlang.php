@@ -1128,7 +1128,7 @@ function microlang_splitline( $line, &$error )
 
             if( strpos( "0123456789", $cn ) !== false )
             {
-                $part .= "0" + $c;
+                $part = "0.";
                 $s = 'n';
                 $p = 'd';
                 continue;

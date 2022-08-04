@@ -333,7 +333,7 @@ function microlang( code, vars, max_iterations )
 
                 if( "0123456789".indexOf( cn ) !== -1 )
                 {
-                    part += "0" + c;
+                    part = "0.";
                     s = 'n';
                     p = 'd';
                     continue;
