@@ -1000,6 +1000,8 @@ function microlang( code, vars, max_iterations )
 
         if( ! done && microlang_parse( tokens, [ '@', '=', 'typeof', '(', '#', ')' ] ) )
         {
+            err = microlang_typecheck( tokens, "?*" ); if( err !== '' ) return err + y1b;
+
             rt = 'string';
             if( isset( typs[t0s] ) && typs[t0s] !== rt ) return "variable `" + t0s + "` must be "+ rt + ": " + y1b;
             typs[t0s] = rt;
