@@ -1020,14 +1020,14 @@ function microlang( code, vars, max_iterations )
             if( isset( typs[t0s] ) && typs[t0s] !== rt ) return "variable `" + t0s + "` must be "+ rt + ": " + y1b;
             typs[t0s] = rt;
 
-            if( tokens[4]['vtype'] === 'string' && /^-?\d+(?:e\d+|E\d+|e-\d+|E-\d+)?$/.test( tokens[4]['value'] ) === false )
+            if( tokens[4]['vtype'] === 'string' && /^-?\d+(?:e\d+|E\d+|e-\d+|E-\d+)?$/.test( tokens[4]['value'] ) === false && /^-?\d*\.\d+(?:e\d+|E\d+|e-\d+|E-\d+)?$/.test( tokens[4]['value'] ) === false)
             {
                 vars[t0s] = 0;
                 vars['cast_failed'] = 1;
             }
             else
             {
-                if( parseFloat( vars[tokens[4]['value']] ) > 9223372036854775807 || parseFloat( vars[tokens[4]['value']] ) < -9223372036854775808 )
+                if( parseFloat( tokens[4]['value'] ) > 9223372036854775807 || parseFloat( tokens[4]['value'] ) < -9223372036854775808 )
                 {
                     vars[t0s] = 0;
                     vars['cast_failed'] = 1;
@@ -1050,7 +1050,7 @@ function microlang( code, vars, max_iterations )
             if( isset( typs[t0s] ) && typs[t0s] !== 'int' && typs[t0s] !== 'float' ) return "variable `" + t0s + "` must be int or float: " + y1b;
             typs[t0s] = 'float';
 
-            if( tokens[4]['vtype'] === 'string' && /^-?\d+(?:e\d+|E\d+|e-\d+|E-\d+)?$/.test( tokens[4]['value'] ) === false && /^-?\d+(?:e\d+|E\d+|e-\d+|E-\d+)?$/.test( tokens[4]['value'] ) === false)
+            if( tokens[4]['vtype'] === 'string' && /^-?\d+(?:e\d+|E\d+|e-\d+|E-\d+)?$/.test( tokens[4]['value'] ) === false && /^-?\d*\.\d+(?:e\d+|E\d+|e-\d+|E-\d+)?$/.test( tokens[4]['value'] ) === false)
             {
                 vars[t0s] = parseFloat(0);
                 vars['cast_failed'] = 1;

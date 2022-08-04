@@ -529,14 +529,14 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
             if( isset( $typs[$t0s] ) && $typs[$t0s] !== $rt ) return "variable `$t0s` must be $rt: $y1b";
             $typs[$t0s] = $rt;
 
-            if( $tokens[4]['vtype'] === 'string' && preg_match( '/^-?\d+(?:e\d+|E\d+|e-\d+|E-\d+)?$/', $tokens[4]['value'] ) === 0 )
+            if( $tokens[4]['vtype'] === 'string' && preg_match( '/^-?\d+(?:e\d+|E\d+|e-\d+|E-\d+)?$/', $tokens[4]['value'] ) === 0 && preg_match( '/^-?\d*\.\d+(?:e\d+|E\d+|e-\d+|E-\d+)?$/', $tokens[4]['value'] ) === 0 )
             {
                 $vars[$t0s] = (int)0;
                 $vars['cast_failed'] = 1;
             }
             else
             {
-                if( floatval( $vars[$tokens[4]['value']] ) > PHP_INT_MAX || floatval( $vars[$tokens[4]['value']] ) < PHP_INT_MIN )
+                if( floatval( $tokens[4]['value'] ) > PHP_INT_MAX || floatval( $tokens[4]['value'] ) < PHP_INT_MIN )
                 {
                     $vars[$t0s] = (int)0;
                     $vars['cast_failed'] = 1;
@@ -559,7 +559,7 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
             if( isset( $typs[$t0s] ) && $typs[$t0s] !== 'int' && $typs[$t0s] !== 'float' ) return "variable `$t0s` must be int or float: $y1b";
             $typs[$t0s] = 'float';
 
-            if( $tokens[4]['vtype'] === 'string' && preg_match( '/^-?\d+(?:e\d+|E\d+|e-\d+|E-\d+)?$/', $tokens[4]['value'] ) === 0 && preg_match( '/^-?\d+(?:e\d+|E\d+|e-\d+|E-\d+)?$/', $tokens[4]['value'] ) === 0 )
+            if( $tokens[4]['vtype'] === 'string' && preg_match( '/^-?\d+(?:e\d+|E\d+|e-\d+|E-\d+)?$/', $tokens[4]['value'] ) === 0 && preg_match( '/^-?\d*\.\d+(?:e\d+|E\d+|e-\d+|E-\d+)?$/', $tokens[4]['value'] ) === 0 )
             {
                 $vars[$t0s] = (float)0;
                 $vars['cast_failed'] = 1;
@@ -1106,7 +1106,7 @@ function microlang_splitline( $line, &$error )
             {
                 if( $p === 'i' )
                 {
-                    $part .= c;
+                    $part .= $c;
                     $p = 'd';
                     continue;
                 }
