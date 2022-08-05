@@ -4,13 +4,16 @@ $clean   = ROOT_PATH . '/include/clean.php';
 
 $microlang_test_number = 1;
 $output = [];
-$microlang_test_count = substr_count( file_get_contents( SCRP_PATH ), 'require $execute;' );
 
 require $clean;
 
 require_once ROOT_PATH . '/../../microlang.php';
 
-enumerate_tests();
+$microlang_test_count = enumerate_tests();
+
+require_once ROOT_PATH . "/include/javascript.php";
+
+genarate_javascript();
 
 function do_assert( $assertion = null )
 {
@@ -85,7 +88,7 @@ function do_assert( $assertion = null )
     $output_str = trim( $output_str );
     if( $output_str === '' ) $output_str = "(none)";
 
-    echo "Code:\n" . numbercode( $code ) . "\n\n";
+    echo "Code:\n" . number_code( $code ) . "\n\n";
     echo "Error: \"$error\"\n\n";
     echo "Input:\n$input_str\n\n";
     echo "Output:\n$output_str\n\n";
@@ -95,7 +98,7 @@ function do_assert( $assertion = null )
     exit;
 }
 
-function checkvars( $reserved, $io, $where )
+function check_vars( $reserved, $io, $where )
 {
     foreach( $io as $k => $v )
     {
@@ -109,7 +112,7 @@ function checkvars( $reserved, $io, $where )
     }
 }
 
-function numbercode( $code )
+function number_code( $code )
 {
     $code = trim( $code );
     $code = explode( "\n", $code );
@@ -138,4 +141,5 @@ function enumerate_tests()
     }
     $code = implode( "\n", $code );
     file_put_contents( SCRP_PATH, $code );
+    return $index - 1;
 }
