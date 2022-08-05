@@ -139,6 +139,47 @@ require $clean;
 
 
 
+//
+// Trim()
+//
+
+// Test 11
+$input = [];
+$code = "s = trim( \"\\t\\t\\r  \\n \\n foo \\n\\n  \\n\" )";
+require $execute;
+do_assert( @$s === 'foo' );
+require $clean;
+
+
+
+// Test 12
+$input = [];
+$code = "s = trim( \"  \\n \\n foo bar\\n\\n  \\n\" )\n";
+require $execute;
+do_assert( @$s === 'foo bar' );
+require $clean;
+
+
+
+// Test 13
+$input = [];
+$code = "s = trim( \"foo bar\" )";
+require $execute;
+do_assert( @$s === 'foo bar' );
+require $clean;
+
+
+
+// Test 14
+$input = [];
+$code = "s = trim( \"\" )";
+require $execute;
+do_assert( @$s === '' );
+require $clean;
+
+
+
+
 
 
 

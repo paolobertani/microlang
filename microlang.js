@@ -36,6 +36,8 @@ function microlang( code, vars, max_iterations )
         typs,
         key,
         value,
+        ch,
+        sl,
         i,
         n,
         idx,
@@ -163,6 +165,48 @@ function microlang( code, vars, max_iterations )
 
 
 
+    var microlang_trim = function( txt )
+    {
+        var c,n;
+
+        while( true )
+        {
+            if( txt === '' ) break;
+
+            c = txt.charAt( 0 );
+            if( c === '\n' || c === ' ' || c === '\r' || c === '\t' )
+            {
+                txt = txt.substring( 1 );
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        while( true )
+        {
+            if( txt === '' ) break;
+
+            n = txt.length;
+
+            c = txt.charAt( n - 1 );
+
+            if( c === '\n' || c === ' ' || c === '\r' || c === '\t' )
+            {
+                txt = txt.substring( 0, n - 1 );
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        return txt;
+    };
+
+
+
     var microlang_splitline = function( line, error )
     {
         var parts,
@@ -238,21 +282,51 @@ function microlang( code, vars, max_iterations )
             {
                 if( s !== 's' )
                 {
-                    error['msg'] = "unexpected escape character `" + c + "`: ";
+                    error = "unexpected escape character `c`: ";
                     return parts;
                 }
 
-                if( c2 === "\\\\" || c2 === "\\n" || c2 === "\\r" || c2 === "\\t" || c2 === "\\\"" )
+                if( c2 === "\\\\" )
                 {
-                    part += c2;
+                    part += "\\";
+                    i++;
+                    continue;
+                }
+                else if( c2 === "\\n" )
+                {
+                    part += "\n";
+                    i++;
+                    continue;
+                }
+                else if( c2 === "\\r" )
+                {
+                    part += "\r";
+                    i++;
+                    continue;
+                }
+                else if( c2 === "\\t" )
+                {
+                    part += "\t";
+                    i++;
+                    continue;
+                }
+                else if( c2 === "\\\"" )
+                {
+                    part += "\"";
+                    i++;
+                    continue;
+                }
+                else if( c2 === "\\'" )
+                {
+                    part += "'";
                     i++;
                     continue;
                 }
                 else
                 {
-                    error['msg'] = "unrecognized escape sequence `" + c2 + "`: ";
+                    error = "unrecognized escape sequence `" + c2 + "`: ";
+                    return parts;
                 }
-                return parts;
             }
 
             if( c === '"' )
@@ -974,7 +1048,7 @@ function microlang( code, vars, max_iterations )
             if( isset( typs[t0s] ) && typs[t0s] !== rt ) return "variable `" + t0s + "` must be "+ rt + ": " + y1b;
             typs[t0s] = rt;
 
-            vars[t0s] = tokens[4]['value'].trim();
+            vars[t0s] = microlang_trim( tokens[4]['value'] );
 
             done = true;
         }

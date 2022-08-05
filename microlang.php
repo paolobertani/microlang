@@ -482,7 +482,7 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
             if( isset( $typs[$t0s] ) && $typs[$t0s] !== $rt ) return "variable `$t0s` must be $rt: $y1b";
             $typs[$t0s] = $rt;
 
-            $vars[$t0s] = trim( $tokens[4]['value'], " " );
+            $vars[$t0s] = trim( $tokens[4]['value'], " \n\r\t" );
 
             $done = true;
         }
@@ -1039,15 +1039,47 @@ function microlang_splitline( $line, &$error )
                 return $parts;
             }
 
-            if( $c2 === "\\\\" || $c2 === "\\n" || $c2 === "\\r" || $c2 === "\\t" || $c2 === "\\\"" )
+            if( $c2 === "\\\\" )
             {
-                $part .= $c2;
+                $part .= "\\";
                 $i++;
                 continue;
             }
-
-            $error = "unrecognized escape sequence `$c2`: ";
-            return $parts;
+            else if( $c2 === "\\n" )
+            {
+                $part .= "\n";
+                $i++;
+                continue;
+            }
+            else if( $c2 === "\\r" )
+            {
+                $part .= "\r";
+                $i++;
+                continue;
+            }
+            else if( $c2 === "\\t" )
+            {
+                $part .= "\t";
+                $i++;
+                continue;
+            }
+            else if( $c2 === "\\\"" )
+            {
+                $part .= "\"";
+                $i++;
+                continue;
+            }
+            else if( $c2 === "\\'" )
+            {
+                $part .= "'";
+                $i++;
+                continue;
+            }
+            else
+            {
+                $error = "unrecognized escape sequence `$c2`: ";
+                return $parts;
+            }
         }
 
         if( $c === '"' )

@@ -158,7 +158,7 @@ a = substring( b, 3, 5, )   // 5 characters from position 3 (index 0 based)
 a = between( b, "(", ")" )  // the text between the markers `(` and `)`
 a = between( b, "", "x" )   // the text between the beginning and "x"
 a = between( b, "x", "" )   // the text between "x" and the end of the string
-a = trim( b )               // removes leading and trailing spaces
+a = trim( b )               // removes leading and trailing spaces, LFs, CRs, Tabs
 idx = position( a, b )      // the starting position of `b` in `a`, -1 if not found
 l = len( a )                // the length of the string
 ```
