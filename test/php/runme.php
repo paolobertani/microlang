@@ -138,12 +138,91 @@ require $clean;
 
 
 
+//
+// String too long
+//
 
+// Test 11
+$input = [];
+$code = "a = 10\n";
+$code.= "b = 1\n";
+$code.= "loop:\n";
+$code.= "  if b > 20 then finish\n";
+$code.= "  a = a + a\n";
+$code.= "  b = b + 1\n";
+$code.= "goto loop\n";
+$code.= "\n";
+$code.= "finish:\n";
+$code.= "exit\n";
+require $execute;
+do_assert( @$a === 10485760 );
+require $clean;
+
+
+
+// Test 12
+$input = [];
+$code = "a = \"xxxxxxxxxx\"\n";
+$code.= "b = 1\n";
+$code.= "loop:\n";
+$code.= "  if b > 20 then finish\n";
+$code.= "  a = a + a\n";
+$code.= "  b = b + 1\n";
+$code.= "goto loop\n";
+$code.= "\n";
+$code.= "finish:\n";
+$code.= "exit\n";
+require $execute;
+do_assert();
+require $clean;
+
+
+//
+// Int overflow
+//
+
+// Test 13
+$input = [];
+$code = "a = 10\n";
+$code.= "b = 1\n";
+$code.= "loop:\n";
+$code.= "  if b > 100 then finish\n";
+$code.= "  a = a + a\n";
+$code.= "  b = b + 1\n";
+$code.= "goto loop\n";
+$code.= "\n";
+$code.= "finish:\n";
+$code.= "exit\n";
+require $execute;
+do_assert();
+require $clean;
+
+
+
+// Test 14
+$input = [];
+$code = "a = -10\n";
+$code.= "b = 1\n";
+$code.= "loop:\n";
+$code.= "  if b > 100 then finish\n";
+$code.= "  a = a + a\n";
+$code.= "  b = b + 1\n";
+$code.= "goto loop\n";
+$code.= "\n";
+$code.= "finish:\n";
+$code.= "exit\n";
+require $execute;
+do_assert();
+require $clean;
+
+
+
+//
 //
 // Trim()
 //
 
-// Test 11
+// Test 15
 $input = [];
 $code = "s = trim( \"\\t\\t\\r  \\n \\n foo \\n\\n  \\n\" )";
 require $execute;
@@ -152,7 +231,7 @@ require $clean;
 
 
 
-// Test 12
+// Test 16
 $input = [];
 $code = "s = trim( \"  \\n \\n foo bar\\n\\n  \\n\" )\n";
 require $execute;
@@ -161,7 +240,7 @@ require $clean;
 
 
 
-// Test 13
+// Test 17
 $input = [];
 $code = "s = trim( \"foo bar\" )";
 require $execute;
@@ -170,12 +249,119 @@ require $clean;
 
 
 
-// Test 14
+// Test 18
 $input = [];
 $code = "s = trim( \"\" )";
 require $execute;
 do_assert( @$s === '' );
 require $clean;
+
+
+
+// Test 19
+$input = [];
+$code = "s = trim( 100 )";
+require $execute;
+do_assert();
+require $clean;
+
+
+
+// Test 20
+$input = [];
+$code = "s = trim( \"\" )";
+require $execute;
+do_assert( @$s === '' );
+require $clean;
+
+
+
+
+//
+// Substring()
+//
+
+
+
+// Test 21
+$input = [];
+$code = "s = substring( \"some text\", 0, 4 )";
+require $execute;
+do_assert( @$s === 'some' );
+require $clean;
+
+
+
+// Test 22
+$input = [];
+$code = "s = substring( \"some text\", 5, 4 )";
+require $execute;
+do_assert( @$s === 'text' );
+require $clean;
+
+
+
+// Test 23
+$input = [];
+$code = "s = substring( \"some text\", 5, 1000 )";
+require $execute;
+do_assert( @$s === 'text' );
+require $clean;
+
+
+
+// Test 24
+$input = [];
+$code = "s = substring( \"some text\", 20, 30 )";
+require $execute;
+do_assert( @$s === '' );
+require $clean;
+
+
+
+// Test 25
+$input = [];
+$code = "s = substring( \"some text\", 5, -4 )";
+require $execute;
+do_assert();
+require $clean;
+
+
+
+// Test 26
+$input = [];
+$code = "s = substring( \"some text\", -4, 4 )";
+require $execute;
+do_assert();
+require $clean;
+
+
+
+// Test 27
+$input = [];
+$code = "s = substring( 100, 0, 1 )";
+require $execute;
+do_assert();
+require $clean;
+
+
+
+// Test 28
+$input = [];
+$code = "s = substring( \"some text\", \"0\", 4 )";
+require $execute;
+do_assert();
+require $clean;
+
+
+
+// Test 29
+$input = [];
+$code = "s = substring( \"some text\", 0, \"4\" )";
+require $execute;
+do_assert();
+require $clean;
+
 
 
 
@@ -190,5 +376,23 @@ require $clean;
 //
 
 echo chr(27)."[2K\rAll test passed!\n";
+
+
+
+//
+// on macOS attemp to open and run JavaScript tests with Safari
+//
+
+$output = [];
+$result_code = 0;
+$osascript = exec("which osascript", $output, $result_code );
+if( $result_code !== 0 || $osascript === false || strpos( $osascript, "osascript" ) === false ) exit(0);
+
+$jstest =  ROOT_PATH . "/../js/openme.html";
+sleep( 2 );
+echo "Testing JavaScript interpreter... ";
+exec( "osascript -e 'tell application \"Safari\" to open ( (\"$jstest\") as POSIX file)'" );
+exec( "osascript -e 'set bounds of first window of application \"Safari\" to {50, 100, 800, 800}'" );
+echo "done.\n";
 
 
