@@ -6,7 +6,7 @@
 // A javascript microlang interpreter
 //
 // microlang version 1.3
-// js intepreter version 1.3.0
+// js intepreter version 1.3.1
 //
 // Copyright (c) 2022, Paolo Bertani - Kalei S.r.l.
 //
