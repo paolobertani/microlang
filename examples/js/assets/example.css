@@ -1,26 +1,113 @@
+/* http://meyerweb.com/eric/tools/css/reset/
+   v2.0 | 20110126
+   License: none (public domain)
+*/
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+body {
+	line-height: 1;
+}
+ol, ul {
+	list-style: none;
+}
+blockquote, q {
+	quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content: '';
+	content: none;
+}
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+
+
+/* --- */
+
+
 body
 {
-    font-family: sans-serif;
-    font-size: 14px;
+    background: #001e36;
+    color: #31a8ff;
+    position: relative;
+    top: 0px;
+    left: 0px;
+    font-family: Monaco, monospace;
+    font-size: 13px;
+}
+
+form
+{
+    background: #001e36;
+    color: #31a8ff;
+    position: relative;
+    left: 30px;
+    right: 30px;
 }
 
 input
 {
+    background: #001e36;
+    color: #3075ff;
+    position: relative;
     font-family: Monaco, monospace;
     font-size: 11px;
-    border: 1px solid #bbb;
+    border: none;
     padding: 4px;
+}
+
+textarea {
+    overflow-y: scroll;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;  /* Internet Explorer 10+ */
+}
+textarea::-webkit-scrollbar { /* WebKit */
+    width: 0;
+    height: 0;
+}
+
+#start, #end
+{
+    width: 60px;
 }
 
 #code
 {
+    width: 800px;
+    background: #001e36;
+    color: #3075ff;
+    position: relative;
     display: block;
     overflow: scroll;
-    top: 50px;
-    left: 50px;
-    width: 800px;
     height: 450px;
-    border: 1px solid #bbb;
+    border: none;
     padding: 4px;
     font-family: Monaco, monospace;
     font-size: 11px;
@@ -29,21 +116,16 @@ input
 
 #output
 {
+    width: 800px;
+    background: #001e36;
+    color: #3075ff;
+    position: relative;
     display: block;
     overflow: scroll;
-    top: 450px;
-    left: 50px;
-    width: 800px;
     height: 150px;
-    border: 1px solid #bbb;
+    border: none;
     padding: 4px;
     font-family: Monaco, monospace;
     font-size: 11px;
     word-break: break-all;
-}
-
-#button
-{
-    font-family: Monaco, monospace;
-    font-size: 11px;
 }

@@ -70,7 +70,9 @@ microlang_tests[4] = function()
 
     input = { 'a': 'text', 'b': 10, 'c': 12.3 };
 
-    code = "ta = typeof( a )\n";
+    code = "";
+    code+= "string ta,tb,tc\n";
+    code+= "ta = typeof( a )\n";
     code+= "tb = typeof( b )\n";
     code+= "tc = typeof( c )\n";
 
@@ -90,7 +92,9 @@ microlang_tests[5] = function()
 
     input = { 'a': true, 'b': 1, 'c': 1 }; // boolean not allowed
 
-    code = "ta = typeof( a )\n";
+    code = "";
+    code+= "string ta,tb,tc\n";
+    code+= "ta = typeof( a )\n";
     code+= "tb = typeof( b )\n";
     code+= "tc = typeof( c )\n";
 
@@ -110,7 +114,8 @@ microlang_tests[6] = function()
 
     input = { 'a': 10 };
 
-    code = "a = float( a )\n"; // allowed
+    code = "";
+    code+= "a = float( a )\n"; // allowed
 
     execute();
 
@@ -128,7 +133,8 @@ microlang_tests[7] = function()
 
     input = { 'a': 12.3 };
 
-    code = "a = int( a )\n"; // not allowed
+    code = "";
+    code+= "a = int( a )\n"; // not allowed
 
     execute();
 
@@ -146,7 +152,9 @@ microlang_tests[8] = function()
 
     input = { 'a': 1 };
 
-    code = "b = \"foo\"\n";
+    code = "";
+    code+= "string b";
+    code+= "b = \"foo\"\n";
     code+= "a = b\n"; // type change not allowed
 
     execute();
@@ -165,15 +173,22 @@ microlang_tests[9] = function()
 
     input = {};
 
-    code = "s = \"10.8\"\n";
+    code = "";
+    code+= "int    stoi,itoi,ftoi\n";
+    code+= "float  stof,itof,ftof\n";
+    code+= "string stos,itos,ftos\n";
+    code += "\n";
+    code+= "string s = \"10.8\"\n";
     code+= "stoi = int(    s )\n";
     code+= "stof = float(  s )\n";
     code+= "stos = string( s )\n";
-    code+= "i = 10E2\n";
+    code+= "\n";
+    code+= "int i = 10E2\n";
     code+= "itoi = int(    i )\n";
     code+= "itof = float(  i )\n";
     code+= "itos = string( i )\n";
-    code+= "f = 10.0e-2\n";
+    code+= "\n";
+    code+= "float f = 10.0e-2\n";
     code+= "ftoi = int(    f )\n";
     code+= "ftof = float(  f )\n";
     code+= "ftos = string( f )\n";
@@ -194,8 +209,14 @@ microlang_tests[10] = function()
 
     input = {};
 
-    code = "i = -10e2\n";
+    code = "";
+    code+= "int i\n";
+    code+= "string ti\n";
+    code+= "i = -10e2\n";
     code+= "ti= typeof( i )\n";
+    code+= "\n";
+    code+= "float f\n";
+    code+= "string tf\n";
     code+= "f = .0\n";
     code+= "tf= typeof( f )\n";
 
@@ -215,7 +236,9 @@ microlang_tests[11] = function()
 
     input = {};
 
-    code = "a = 10\n";
+    code = "";
+    code+= "int a,b\n";
+    code+= "a = 10\n";
     code+= "b = 1\n";
     code+= "loop:\n";
     code+= "  if b > 20 then finish\n";
@@ -242,8 +265,9 @@ microlang_tests[12] = function()
 
     input = {};
 
-    code = "a = \"xxxxxxxxxx\"\n";
-    code+= "b = 1\n";
+    code = "";
+    code+= "string a = \"xxxxxxxxxx\"\n";
+    code+= "int b = 1\n";
     code+= "loop:\n";
     code+= "  if b > 20 then finish\n";
     code+= "  a = a + a\n";
@@ -269,8 +293,9 @@ microlang_tests[13] = function()
 
     input = {};
 
-    code = "a = 10\n";
-    code+= "b = 1\n";
+    code = "";
+    code+= "int a = 10\n";
+    code+= "int b = 1\n";
     code+= "loop:\n";
     code+= "  if b > 100 then finish\n";
     code+= "  a = a + a\n";
@@ -296,8 +321,9 @@ microlang_tests[14] = function()
 
     input = {};
 
-    code = "a = -10\n";
-    code+= "b = 1\n";
+    code = "";
+    code+= "int a = -10\n";
+    code+= "int b = 1\n";
     code+= "loop:\n";
     code+= "  if b > 100 then finish\n";
     code+= "  a = a + a\n";
@@ -323,7 +349,9 @@ microlang_tests[15] = function()
 
     input = {};
 
-    code = "s = trim( \"\\t\\t\\r  \\n \\n foo \\n\\n  \\n\" )";
+    code = "";
+    code+= "string s\n";
+    code+= "s = trim( \"\\t\\t\\r  \\n \\n foo \\n\\n  \\n\" )";
 
     execute();
 
@@ -341,7 +369,9 @@ microlang_tests[16] = function()
 
     input = {};
 
-    code = "s = trim( \"  \\n \\n foo bar\\n\\n  \\n\" )\n";
+    code = "";
+    code+= "string s\n";
+    code+= "s = trim( \"  \\n \\n foo bar\\n\\n  \\n\" )\n";
 
     execute();
 
@@ -359,7 +389,9 @@ microlang_tests[17] = function()
 
     input = {};
 
-    code = "s = trim( \"foo bar\" )";
+    code = "";
+    code+= "string s\n";
+    code+= "s = trim( \"foo bar\" )";
 
     execute();
 
@@ -377,7 +409,9 @@ microlang_tests[18] = function()
 
     input = {};
 
-    code = "s = trim( \"\" )";
+    code = "";
+    code+= "string s\n";
+    code+= "s = trim( \"\" )";
 
     execute();
 
@@ -395,7 +429,9 @@ microlang_tests[19] = function()
 
     input = {};
 
-    code = "s = trim( 100 )";
+    code = "";
+    code+= "string s\n";
+    code+= "s = trim( 100 )";
 
     execute();
 
@@ -413,7 +449,9 @@ microlang_tests[20] = function()
 
     input = {};
 
-    code = "s = trim( \"\" )";
+    code = "";
+    code+= "string s\n";
+    code+= "s = trim( \"\" )";
 
     execute();
 
@@ -431,7 +469,9 @@ microlang_tests[21] = function()
 
     input = {};
 
-    code = "s = substring( \"some text\", 0, 4 )";
+    code = "";
+    code+= "string s\n";
+    code+= "s = substring( \"some text\", 0, 4 )";
 
     execute();
 
@@ -449,7 +489,9 @@ microlang_tests[22] = function()
 
     input = {};
 
-    code = "s = substring( \"some text\", 5, 4 )";
+    code = "";
+    code+= "string s\n";
+    code+= "s = substring( \"some text\", 5, 4 )";
 
     execute();
 
@@ -467,7 +509,9 @@ microlang_tests[23] = function()
 
     input = {};
 
-    code = "s = substring( \"some text\", 5, 1000 )";
+    code = "";
+    code+= "string s\n";
+    code+= "s = substring( \"some text\", 5, 1000 )";
 
     execute();
 
@@ -485,7 +529,9 @@ microlang_tests[24] = function()
 
     input = {};
 
-    code = "s = substring( \"some text\", 20, 30 )";
+    code = "";
+    code+= "string s\n";
+    code+= "s = substring( \"some text\", 20, 30 )";
 
     execute();
 
@@ -503,11 +549,13 @@ microlang_tests[25] = function()
 
     input = {};
 
-    code = "s = substring( \"some text\", 5, -4 )";
+    code = "";
+    code+= "string s\n";
+    code+= "s = substring( \"some text\", -4, 4 )";
 
     execute();
 
-    success = assert();
+    success = assert( output['s'] === 'text', 's = "text"' );
 
     return success;
 };
@@ -521,11 +569,13 @@ microlang_tests[26] = function()
 
     input = {};
 
-    code = "s = substring( \"some text\", -4, 4 )";
+    code = "";
+    code+= "string s\n";
+    code+= "s = substring( \"some text\", 5, -2 )";
 
     execute();
 
-    success = assert();
+    success = assert( output['s'] === 'te');
 
     return success;
 };
@@ -539,7 +589,9 @@ microlang_tests[27] = function()
 
     input = {};
 
-    code = "s = substring( 100, 0, 1 )";
+    code = "";
+    code+= "string s\n";
+    code+= "s = substring( 100, 0, 1 )";
 
     execute();
 
@@ -557,7 +609,9 @@ microlang_tests[28] = function()
 
     input = {};
 
-    code = "s = substring( \"some text\", \"0\", 4 )";
+    code = "";
+    code+= "string s\n";
+    code+= "s = substring( \"some text\", \"0\", 4 )";
 
     execute();
 
@@ -575,7 +629,9 @@ microlang_tests[29] = function()
 
     input = {};
 
-    code = "s = substring( \"some text\", 0, \"4\" )";
+    code = "";
+    code+= "string s\n";
+    code+= "s = substring( \"some text\", 0, \"4\" )";
 
     execute();
 

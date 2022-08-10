@@ -47,7 +47,9 @@ require $clean;
 
 // Test 4
 $input = [ 'a' => 'text', 'b' => 10, 'c' => 12.3 ];
-$code = "ta = typeof( a )\n";
+$code = "";
+$code.= "string ta,tb,tc\n";
+$code.= "ta = typeof( a )\n";
 $code.= "tb = typeof( b )\n";
 $code.= "tc = typeof( c )\n";
 require $execute;
@@ -58,7 +60,9 @@ require $clean;
 
 // Test 5
 $input = [ 'a' => true, 'b' => 1, 'c' => 1 ]; // boolean not allowed
-$code = "ta = typeof( a )\n";
+$code = "";
+$code.= "string ta,tb,tc\n";
+$code.= "ta = typeof( a )\n";
 $code.= "tb = typeof( b )\n";
 $code.= "tc = typeof( c )\n";
 require $execute;
@@ -75,7 +79,8 @@ require $clean;
 
 // Test 6
 $input = [ 'a' => 10 ];
-$code = "a = float( a )\n"; // allowed
+$code = "";
+$code.= "a = float( a )\n"; // allowed
 require $execute;
 do_assert( @$a === 10.0 );
 require $clean;
@@ -84,7 +89,8 @@ require $clean;
 
 // Test 7
 $input = [ 'a' => 12.3 ];
-$code = "a = int( a )\n"; // not allowed
+$code = "";
+$code.= "a = int( a )\n"; // not allowed
 require $execute;
 do_assert();
 require $clean;
@@ -93,7 +99,9 @@ require $clean;
 
 // Test 8
 $input = [ 'a' => 1 ];
-$code = "b = \"foo\"\n";
+$code = "";
+$code.= "string b";
+$code.= "b = \"foo\"\n";
 $code.= "a = b\n"; // type change not allowed
 require $execute;
 do_assert();
@@ -103,15 +111,22 @@ require $clean;
 
 // Test 9
 $input = [];
-$code = "s = \"10.8\"\n";
+$code = "";
+$code.= "int    stoi,itoi,ftoi\n";
+$code.= "float  stof,itof,ftof\n";
+$code.= "string stos,itos,ftos\n";
+$code .= "\n";
+$code.= "string s = \"10.8\"\n";
 $code.= "stoi = int(    s )\n";
 $code.= "stof = float(  s )\n";
 $code.= "stos = string( s )\n";
-$code.= "i = 10E2\n";
+$code.= "\n";
+$code.= "int i = 10E2\n";
 $code.= "itoi = int(    i )\n";
 $code.= "itof = float(  i )\n";
 $code.= "itos = string( i )\n";
-$code.= "f = 10.0e-2\n";
+$code.= "\n";
+$code.= "float f = 10.0e-2\n";
 $code.= "ftoi = int(    f )\n";
 $code.= "ftof = float(  f )\n";
 $code.= "ftos = string( f )\n";
@@ -126,10 +141,18 @@ require $clean;
 // Numeric type detection
 //
 
+
+
 // Test 10
 $input = [];
-$code = "i = -10e2\n";
+$code = "";
+$code.= "int i\n";
+$code.= "string ti\n";
+$code.= "i = -10e2\n";
 $code.= "ti= typeof( i )\n";
+$code.= "\n";
+$code.= "float f\n";
+$code.= "string tf\n";
 $code.= "f = .0\n";
 $code.= "tf= typeof( f )\n";
 require $execute;
@@ -142,9 +165,13 @@ require $clean;
 // String too long
 //
 
+
+
 // Test 11
 $input = [];
-$code = "a = 10\n";
+$code = "";
+$code.= "int a,b\n";
+$code.= "a = 10\n";
 $code.= "b = 1\n";
 $code.= "loop:\n";
 $code.= "  if b > 20 then finish\n";
@@ -162,8 +189,9 @@ require $clean;
 
 // Test 12
 $input = [];
-$code = "a = \"xxxxxxxxxx\"\n";
-$code.= "b = 1\n";
+$code = "";
+$code.= "string a = \"xxxxxxxxxx\"\n";
+$code.= "int b = 1\n";
 $code.= "loop:\n";
 $code.= "  if b > 20 then finish\n";
 $code.= "  a = a + a\n";
@@ -177,14 +205,18 @@ do_assert();
 require $clean;
 
 
+
 //
 // Int overflow
 //
 
+
+
 // Test 13
 $input = [];
-$code = "a = 10\n";
-$code.= "b = 1\n";
+$code = "";
+$code.= "int a = 10\n";
+$code.= "int b = 1\n";
 $code.= "loop:\n";
 $code.= "  if b > 100 then finish\n";
 $code.= "  a = a + a\n";
@@ -201,8 +233,9 @@ require $clean;
 
 // Test 14
 $input = [];
-$code = "a = -10\n";
-$code.= "b = 1\n";
+$code = "";
+$code.= "int a = -10\n";
+$code.= "int b = 1\n";
 $code.= "loop:\n";
 $code.= "  if b > 100 then finish\n";
 $code.= "  a = a + a\n";
@@ -218,13 +251,14 @@ require $clean;
 
 
 //
-//
 // Trim()
 //
 
 // Test 15
 $input = [];
-$code = "s = trim( \"\\t\\t\\r  \\n \\n foo \\n\\n  \\n\" )";
+$code = "";
+$code.= "string s\n";
+$code.= "s = trim( \"\\t\\t\\r  \\n \\n foo \\n\\n  \\n\" )";
 require $execute;
 do_assert( @$s === 'foo' );
 require $clean;
@@ -233,7 +267,9 @@ require $clean;
 
 // Test 16
 $input = [];
-$code = "s = trim( \"  \\n \\n foo bar\\n\\n  \\n\" )\n";
+$code = "";
+$code.= "string s\n";
+$code.= "s = trim( \"  \\n \\n foo bar\\n\\n  \\n\" )\n";
 require $execute;
 do_assert( @$s === 'foo bar' );
 require $clean;
@@ -242,7 +278,9 @@ require $clean;
 
 // Test 17
 $input = [];
-$code = "s = trim( \"foo bar\" )";
+$code = "";
+$code.= "string s\n";
+$code.= "s = trim( \"foo bar\" )";
 require $execute;
 do_assert( @$s === 'foo bar' );
 require $clean;
@@ -251,7 +289,9 @@ require $clean;
 
 // Test 18
 $input = [];
-$code = "s = trim( \"\" )";
+$code = "";
+$code.= "string s\n";
+$code.= "s = trim( \"\" )";
 require $execute;
 do_assert( @$s === '' );
 require $clean;
@@ -260,7 +300,9 @@ require $clean;
 
 // Test 19
 $input = [];
-$code = "s = trim( 100 )";
+$code = "";
+$code.= "string s\n";
+$code.= "s = trim( 100 )";
 require $execute;
 do_assert();
 require $clean;
@@ -269,7 +311,9 @@ require $clean;
 
 // Test 20
 $input = [];
-$code = "s = trim( \"\" )";
+$code = "";
+$code.= "string s\n";
+$code.= "s = trim( \"\" )";
 require $execute;
 do_assert( @$s === '' );
 require $clean;
@@ -285,7 +329,9 @@ require $clean;
 
 // Test 21
 $input = [];
-$code = "s = substring( \"some text\", 0, 4 )";
+$code = "";
+$code.= "string s\n";
+$code.= "s = substring( \"some text\", 0, 4 )";
 require $execute;
 do_assert( @$s === 'some' );
 require $clean;
@@ -294,7 +340,9 @@ require $clean;
 
 // Test 22
 $input = [];
-$code = "s = substring( \"some text\", 5, 4 )";
+$code = "";
+$code.= "string s\n";
+$code.= "s = substring( \"some text\", 5, 4 )";
 require $execute;
 do_assert( @$s === 'text' );
 require $clean;
@@ -303,7 +351,9 @@ require $clean;
 
 // Test 23
 $input = [];
-$code = "s = substring( \"some text\", 5, 1000 )";
+$code = "";
+$code.= "string s\n";
+$code.= "s = substring( \"some text\", 5, 1000 )";
 require $execute;
 do_assert( @$s === 'text' );
 require $clean;
@@ -312,7 +362,9 @@ require $clean;
 
 // Test 24
 $input = [];
-$code = "s = substring( \"some text\", 20, 30 )";
+$code = "";
+$code.= "string s\n";
+$code.= "s = substring( \"some text\", 20, 30 )";
 require $execute;
 do_assert( @$s === '' );
 require $clean;
@@ -321,25 +373,31 @@ require $clean;
 
 // Test 25
 $input = [];
-$code = "s = substring( \"some text\", 5, -4 )";
+$code = "";
+$code.= "string s\n";
+$code.= "s = substring( \"some text\", -4, 4 )";
 require $execute;
-do_assert();
+do_assert( @$s === 'text' );
 require $clean;
 
 
 
 // Test 26
 $input = [];
-$code = "s = substring( \"some text\", -4, 4 )";
+$code = "";
+$code.= "string s\n";
+$code.= "s = substring( \"some text\", 5, -2 )";
 require $execute;
-do_assert();
+do_assert( @$s === 'te');
 require $clean;
 
 
 
 // Test 27
 $input = [];
-$code = "s = substring( 100, 0, 1 )";
+$code = "";
+$code.= "string s\n";
+$code.= "s = substring( 100, 0, 1 )";
 require $execute;
 do_assert();
 require $clean;
@@ -348,7 +406,9 @@ require $clean;
 
 // Test 28
 $input = [];
-$code = "s = substring( \"some text\", \"0\", 4 )";
+$code = "";
+$code.= "string s\n";
+$code.= "s = substring( \"some text\", \"0\", 4 )";
 require $execute;
 do_assert();
 require $clean;
@@ -357,7 +417,9 @@ require $clean;
 
 // Test 29
 $input = [];
-$code = "s = substring( \"some text\", 0, \"4\" )";
+$code = "";
+$code.= "string s\n";
+$code.= "s = substring( \"some text\", 0, \"4\" )";
 require $execute;
 do_assert();
 require $clean;

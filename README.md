@@ -35,7 +35,8 @@ io =
     'b': 20
 };
 
-code = "c = a + b";
+code = "int c\n";
+code+= "c = a + b";
 
 var error = microlang( code, io ); // execute
 
@@ -69,6 +70,7 @@ $io =
     'b' => 20
 ];
 
+$code = "int c\n";
 $code = "c = a + b";
 
 $error = microlang( code, io );
@@ -80,7 +82,39 @@ $result = $io['c'];
 
 ### Language specifications
 
-**Variable assignment:**
+
+**Variable declaration:**
+
+Before a variable is used it must be declared and set to a value; variable types are `int`, `float`, `string`.
+
+```
+int a,b,c
+
+a = 10
+b = 20
+c = a + b
+```
+
+An initial value can be set upon declaration of single variable:
+
+```
+int txt = "foo bar"
+```
+
+Variables names are case sensitive.
+
+Allowed characters are `azAZ09_$` variable name must not start with a number.
+
+Variable type cannot be changed later; only exception to this rule are `int`s that can be coverted to `float` by assigning them a float number.
+
+```
+int a = 1
+a = float( a )
+``` 
+
+&nbsp;
+
+**Variable value assignment:**
 
 ```
 a = "text" // string
@@ -88,15 +122,6 @@ b = 123 // integer
 c = 12.3 // float
 ```
 
-Variables names are case sensitive.
-
-Allowed characters are `azAZ09_$` variable name must not start with a number.
-
-Variable types are string, integer signed number or float.
-
-Variable type is determined at first assignment and cannot be changed later; only exception to this rule are `int`s that can be casted to `float`. 
-
-Variable casting is done explicitly via `string`, `int` or `float` functions.
 
 String can be up to 1048576 characters long.
 
@@ -106,7 +131,22 @@ Float must fit a 64 bit double.
 
 To let a literal number be considered float a decimal separator must be included, ex: `4` is `int` while `4.0` is `float`
 
+If any, the input variables passed as `io` parameters when invoking the script are considered both assigned in type and value; those variables must conform to the rules that apply to variables declared inside the **microlang** program.
+
 &nbsp;
+
+**Escape characters in string literals**
+
+```
+lf = "\n"
+cr = "\r"
+tab ="\t"
+backslash = "\\"
+double_quotes = "\""
+```
+
+&nbsp;
+
 
 **Casting:**
 
@@ -154,12 +194,21 @@ Both operands must be of the same type
 
 ```
 a = b + c // concatenation (where `b` and `c` are strings)
-a = substring( b, 3, 5, )   // 5 characters from position 3 (index 0 based)
+
+                            // substr php style
+a = substring( b, 3, 5 )    // 5 characters from position 3 (index 0 based)
+a = substring( b, 3 )       // the characters from position 3 to the end of the string
+a = substring( b, -3, 2 )   // 2 characters from 3 characters before the end of the string
+a = substring( b, 3, -2 )   // the characters from position 3 to 2 charcaters before the end of the string
+
 a = between( b, "(", ")" )  // the text between the markers `(` and `)`
 a = between( b, "", "x" )   // the text between the beginning and "x"
 a = between( b, "x", "" )   // the text between "x" and the end of the string
+
 a = trim( b )               // removes leading and trailing spaces, LFs, CRs, Tabs
+
 idx = position( a, b )      // the starting position of `b` in `a`, -1 if not found
+
 l = len( a )                // the length of the string
 ```
 
@@ -220,7 +269,10 @@ This is to be considered **not a language specification** but a limitation of th
 // Create a string with the numbers from `a` to `b`
 // separated by space
 
-result = ""
+string result = ""
+string t
+int i,j
+
 i = int( a )
 j = int( b )
 
@@ -279,6 +331,8 @@ Also, by running the test the corresponding JavaScript test code is automaticall
 
 To check the JavaScript interpreter first execute the Php test then open `test/js/openme.html` with your browser.
 
+On **macOS** the php test attemp to open the js tests with **Safari** via **AppleScript** when all the test pass.
+
 &nbsp;
 
 ### Motivation
@@ -300,9 +354,8 @@ The algorithms had to be run in a safe, sandboxed environment and shall run both
 
 ```
 mailbox = "paolo.bertani"
-domain = "kalei.it"
-email = mailbox + "@"
-email = email + domain
+at = "@kalei.it"
+email = mailbox + at
 ```
 
 

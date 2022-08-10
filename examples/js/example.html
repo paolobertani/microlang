@@ -16,6 +16,8 @@
 
                 code = $('#code').val();
 
+                fixinput();
+
                 io =
                 {
                     'start': parseInt( $('#start').val() ),
@@ -26,25 +28,55 @@
 
                 output = "";
 
-                if( error === '' )
+                $('#error').val( error );
+
+                for( key in io )
                 {
-                    for( key in io )
+                    if( io.hasOwnProperty( key ) )
                     {
-                        if( io.hasOwnProperty( key ) )
-                        {
-                            if( typeof( io[key] ) === 'string' ) io[key] = "\"" + io[key] + "\"";
-                            output += key + ": " + io[key] + "\n";
-                        }
+                        if( typeof( io[key] ) === 'string' ) io[key] = "\"" + io[key] + "\"";
+                        output += key + ": " + io[key] + "\n";
                     }
-                }
-                else
-                {
-                    output = error;
                 }
 
                 $('#output').val( output );
             }
 
+            $( document ).ready(function()
+            {
+                setTimeout( worker, 1000 );
+            } );
+
+            function worker()
+            {
+                fixinput();
+                setTimeout( worker, 1000 );
+            }
+
+            function fixinput()
+            {
+                var sel = [ '#start', '#end' ];
+                var i,n,s,v,V,j,m;
+
+                n = sel.length;
+                for( i = 0; i < n; i++ )
+                {
+                    V = '';
+                    v = '' + $(sel[i]).val();
+                    m = v.length;
+                    for( j = 0; j < m; j++ )
+                    {
+                        if( "0123456789".indexOf( v.charAt(j) ) !== -1 )
+                        {
+                            V += v.charAt(j);
+                        }
+                    }
+                    if( v !== V )
+                    {
+                        $(sel[i]).val( V );
+                    }
+                }
+            }
 
         </script>
         <link rel="stylesheet" type="text/css" href="assets/example.css">
@@ -63,8 +95,8 @@
             Input:
             <br />
             <br />
-            start = <input id="start" type="number" value="10">
-            end =   <input id="end"   type="number" value="20">
+            start = <input id="start" type="text" value="10">&nbsp;&nbsp;&nbsp;
+            end =   <input id="end"   type="text" value="20">
             <br />
             <br />
             <br />
@@ -75,6 +107,9 @@
 // create a string with the numbers between `start` and `end` separated by a single space
 // expected input is numeric variables `start` and `end`
 // the string generated is stored into `result`
+
+string result,idx_str
+int idx
 
 if end < start then bad_input
 
@@ -91,15 +126,15 @@ loop:
 if idx > end then finish else loop
 
 finish: // remove the trailing space
-  l = len( result )
-  l = l - 1
-  result = substring( result, 0, l )
+  result = substring( result, 0, -1 )
 exit
 
 bad_input:
-  result = "`end`must be equal or greater than `start`"
-exit
+  exit "`end` must be equal or greater than `start`"
             </textarea>
+            <br />
+            <br />
+            Error: <input id="error" type="text" style="color: #ffb730; width: 600px;" value="">
             <br />
             <br />
             Output:
