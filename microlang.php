@@ -519,7 +519,7 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
 
         if( ! $done && microlang_parse( $tokens, [ '@', '=', 'typeof', '(', '#', ')' ] ) )
         {
-            $err = microlang_typecheck( $tokens, "s*" ); if( $err !== '' ) return $err . $y1b;
+            $err = microlang_typecheck( $tokens, "s+" ); if( $err !== '' ) return $err . $y1b;
 
             $vars[ $t0s ] = $tokens[ 4 ][ 'vtype' ];
 
@@ -972,7 +972,7 @@ function microlang_typecheck( $tok, $types )
 
         if( $c === '*' ) // a value of any type or a variable of any type with a value set
         {
-            if( $isvar && $v === null ) return "variable `$y` has undefined value: ";
+            if( $isvar && $t === null ) return "variable `$y` is not defined: ";
             continue;
         }
 
@@ -988,7 +988,9 @@ function microlang_typecheck( $tok, $types )
             continue;
         }
 
-        // a variable or a value
+        if( $isvar && $v === null ) return "variable `$y` has undefined value: ";
+
+        // a value or a variable with defined value
 
         if( $c === 'S' && $t !== 'string' ) return "parameter " . ( $i + 1 ) . " must be string: ";
         if( $c === 'I' && $t !== 'int'    ) return "parameter " . ( $i + 1 ) . " must be int: ";
