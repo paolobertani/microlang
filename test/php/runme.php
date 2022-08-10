@@ -71,13 +71,114 @@ require $clean;
 
 
 
+// Test 6
+$input = [ 'a' => null, 'b' => 1, 'c' => 1 ]; // null not allowed
+$code = "";
+$code.= "string ta,tb,tc\n";
+$code.= "ta = typeof( a )\n";
+$code.= "tb = typeof( b )\n";
+$code.= "tc = typeof( c )\n";
+require $execute;
+do_assert();
+require $clean;
+
+
+
+//
+// Variable definition
+//
+
+
+
+// Test 7
+$input = [];
+$code = "";
+$code.= "int a\n";
+$code.= "b = a\n"; // `b` not defined
+require $execute;
+do_assert();
+require $clean;
+
+
+
+// Test 8
+$input = [];
+$code = "";
+$code.= "int a\n";
+$code.= "b = a + 1\n"; // `b` not defined
+require $execute;
+do_assert();
+require $clean;
+
+
+
+// Test 9
+$input = [];
+$code = "";
+$code.= "int a\n";
+$code.= "a = b + 1\n"; // `b` not defined
+require $execute;
+do_assert();
+require $clean;
+
+
+
+// Test 10
+$input = [];
+$code = "";
+$code.= "int a\n";
+$code.= "a = len( b )\n"; // `b` not defined
+require $execute;
+do_assert();
+require $clean;
+
+
+
+// Test 11
+$input = [];
+$code = "";
+$code.= "string a\n";
+$code.= "int b\n";
+$code.= "b = len( a )\n"; // `a` defined but not set
+require $execute;
+do_assert();
+require $clean;
+
+
+
+// Test 12
+$input = [];
+$code = "";
+$code.= "string s\n";
+$code.= "int i\n";
+$code.= "float f\n";
+$code.= "string ts,ti,tf\n";
+$code.= "ts = typeof( s )\n"; // variables are not set
+$code.= "ti = typeof( i )\n"; // but type is defined
+$code.= "tf = typeof( f )\n";
+require $execute;
+do_assert( @$ts === 'string' && @$ti === 'int' && @$tf === 'float' );
+require $clean;
+
+
+
+// Test 13
+$input = [ 'a' => 1 ];
+$code = "";
+$code.= "int a\n"; // `a` already defined and set
+require $execute;
+do_assert();
+require $clean;
+
+
+
 //
 // Type casting
 //
 
 
 
-// Test 6
+// Test 14
 $input = [ 'a' => 10 ];
 $code = "";
 $code.= "a = float( a )\n"; // allowed
@@ -87,7 +188,7 @@ require $clean;
 
 
 
-// Test 7
+// Test 15
 $input = [ 'a' => 12.3 ];
 $code = "";
 $code.= "a = int( a )\n"; // not allowed
@@ -97,7 +198,7 @@ require $clean;
 
 
 
-// Test 8
+// Test 16
 $input = [ 'a' => 1 ];
 $code = "";
 $code.= "string b";
@@ -109,7 +210,7 @@ require $clean;
 
 
 
-// Test 9
+// Test 17
 $input = [];
 $code = "";
 $code.= "int    stoi,itoi,ftoi\n";
@@ -143,7 +244,7 @@ require $clean;
 
 
 
-// Test 10
+// Test 18
 $input = [];
 $code = "";
 $code.= "int i\n";
@@ -167,7 +268,7 @@ require $clean;
 
 
 
-// Test 11
+// Test 19
 $input = [];
 $code = "";
 $code.= "int a,b\n";
@@ -187,7 +288,7 @@ require $clean;
 
 
 
-// Test 12
+// Test 20
 $input = [];
 $code = "";
 $code.= "string a = \"xxxxxxxxxx\"\n";
@@ -212,7 +313,7 @@ require $clean;
 
 
 
-// Test 13
+// Test 21
 $input = [];
 $code = "";
 $code.= "int a = 10\n";
@@ -231,7 +332,7 @@ require $clean;
 
 
 
-// Test 14
+// Test 22
 $input = [];
 $code = "";
 $code.= "int a = -10\n";
@@ -254,7 +355,7 @@ require $clean;
 // Trim()
 //
 
-// Test 15
+// Test 23
 $input = [];
 $code = "";
 $code.= "string s\n";
@@ -265,7 +366,7 @@ require $clean;
 
 
 
-// Test 16
+// Test 24
 $input = [];
 $code = "";
 $code.= "string s\n";
@@ -276,7 +377,7 @@ require $clean;
 
 
 
-// Test 17
+// Test 25
 $input = [];
 $code = "";
 $code.= "string s\n";
@@ -287,7 +388,7 @@ require $clean;
 
 
 
-// Test 18
+// Test 26
 $input = [];
 $code = "";
 $code.= "string s\n";
@@ -298,7 +399,7 @@ require $clean;
 
 
 
-// Test 19
+// Test 27
 $input = [];
 $code = "";
 $code.= "string s\n";
@@ -309,7 +410,7 @@ require $clean;
 
 
 
-// Test 20
+// Test 28
 $input = [];
 $code = "";
 $code.= "string s\n";
@@ -327,7 +428,7 @@ require $clean;
 
 
 
-// Test 21
+// Test 29
 $input = [];
 $code = "";
 $code.= "string s\n";
@@ -338,7 +439,7 @@ require $clean;
 
 
 
-// Test 22
+// Test 30
 $input = [];
 $code = "";
 $code.= "string s\n";
@@ -349,7 +450,7 @@ require $clean;
 
 
 
-// Test 23
+// Test 31
 $input = [];
 $code = "";
 $code.= "string s\n";
@@ -360,7 +461,7 @@ require $clean;
 
 
 
-// Test 24
+// Test 32
 $input = [];
 $code = "";
 $code.= "string s\n";
@@ -371,7 +472,7 @@ require $clean;
 
 
 
-// Test 25
+// Test 33
 $input = [];
 $code = "";
 $code.= "string s\n";
@@ -382,7 +483,7 @@ require $clean;
 
 
 
-// Test 26
+// Test 34
 $input = [];
 $code = "";
 $code.= "string s\n";
@@ -393,7 +494,7 @@ require $clean;
 
 
 
-// Test 27
+// Test 35
 $input = [];
 $code = "";
 $code.= "string s\n";
@@ -404,7 +505,7 @@ require $clean;
 
 
 
-// Test 28
+// Test 36
 $input = [];
 $code = "";
 $code.= "string s\n";
@@ -415,13 +516,68 @@ require $clean;
 
 
 
-// Test 29
+// Test 37
 $input = [];
 $code = "";
 $code.= "string s\n";
 $code.= "s = substring( \"some text\", 0, \"4\" )";
 require $execute;
 do_assert();
+require $clean;
+
+
+
+// Test 38
+$input = [];
+$code = "";
+$code.= "int s\n";
+$code.= "s = substring( \"some text\", 5, -2 )";
+require $execute;
+do_assert();
+require $clean;
+
+
+
+// Test 39
+$input = [];
+$code = "";
+$code.= "string s\n";
+$code.= "s = substring( \"some text\", 9, -5 )";
+require $execute;
+do_assert( @$s === '' );
+require $clean;
+
+
+
+// Test 40
+$input = [];
+$code = "";
+$code.= "string s\n";
+$code.= "s = substring( \"some text\", 0, 0 )";
+require $execute;
+do_assert( @$s === '' );
+require $clean;
+
+
+
+// Test 41
+$input = [];
+$code = "";
+$code.= "string s\n";
+$code.= "s = substring( \"some text\", 0, 1000 )";
+require $execute;
+do_assert( @$s === 'some text' );
+require $clean;
+
+
+
+// Test 42
+$input = [];
+$code = "";
+$code.= "string s\n";
+$code.= "s = substring( \"some text\", 0, -1000 )";
+require $execute;
+do_assert( @$s === '' );
 require $clean;
 
 
