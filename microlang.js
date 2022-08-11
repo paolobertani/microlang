@@ -63,7 +63,8 @@ function microlang( code, vars, max_iterations )
         i2,
         rt,
         j,
-        tcn;
+        tcn,
+        btw;
 
 
 
@@ -207,7 +208,7 @@ function microlang( code, vars, max_iterations )
 
 
 
-    str_replace = function( s, r, t )
+    var str_replace = function( s, r, t )
     {
         s = '' + s;
         r = '' + r;
@@ -408,6 +409,77 @@ function microlang( code, vars, max_iterations )
         }
 
         return txt;
+    };
+
+
+
+    var microlang_between = function( str, sm, em )
+    {
+        var i1,i2,sml,eml;
+
+        i1 = 0;
+        i2 = 0;
+        sml = mb_strlen( sm );
+        eml = mb_strlen( em );
+
+        if( sml === 0 && eml === 0 )
+        {
+            return str;
+        }
+
+        if( sml === 0 )
+        {
+            i2 = mb_strpos( str, em );
+            if( i2 === false )
+            {
+                return false;
+            }
+
+            return mb_substr8( str, 0, i2 );
+        }
+
+        if( eml === 0 )
+        {
+            i1 = mb_strpos( str, sm );
+
+            if( i1 === false ) return false;
+
+            str = mb_substr8( str, i1 + sml );
+
+            while( true )
+            {
+                i1 = mb_strpos( str, sm );
+                if( i1 === false )
+                {
+                    break;
+                }
+                else
+                {
+                    str = mb_substr8( str, i1 + sml );
+                }
+            }
+
+            return str;
+        }
+
+        i1 = mb_strpos( str, sm );
+
+        if( i1 === false ) return false;
+
+        i2 = mb_strpos( str, em, i1 + sml );
+
+        if( i2 === false ) return false;
+
+        str = mb_substr8( str, i1 + sml, i2 - i1 - sml );
+
+        while( true )
+        {
+            i1 = mb_strpos( str, sm );
+            if( i1 === false ) break;
+            str = mb_substr8( str, i1 + sml );
+        }
+
+        return str;
     };
 
 
@@ -1242,20 +1314,27 @@ function microlang( code, vars, max_iterations )
         {
             err = microlang_typecheck( tokens, "sSSS" ); if( err !== '' ) return err + y1b;
 
-            if( tokens[ 6 ][ 'value' ] === '' ) { i1 = 0; } else { i1 = mb_strpos( tokens[ 4 ][ 'value' ], tokens[ 6 ][ 'value' ] ); }
+            vars[ t0s ] = microlang_between( tokens[ 4 ][ 'value' ], tokens[ 6 ][ 'value' ], tokens[ 8 ][ 'value' ] );
 
-            if( tokens[ 8 ][ 'value' ] === '' ) { i2 = mb_strlen( tokens[ 4 ][ 'value' ] ); } else { i2 = mb_strpos( tokens[ 4 ][ 'value' ], tokens[ 8 ][ 'value' ] ); }
+            if( vars[ t0s ] === false ) vars[ t0s ] = "";
 
-            i1 = mb_strpos( tokens[ 4 ][ 'value' ], tokens[ 6 ][ 'value' ] );
-            i2 = mb_strpos( tokens[ 4 ][ 'value' ], tokens[ 8 ][ 'value' ] );
+            done = true;
+        }
 
-            if( i1 === false || i2 === false || i2 < i1 )
+        if( ! done && microlang_parse( tokens, [ '@', '=', 'between', '(', '#', ',', '#', ',', '#', ',', '@', ')' ] ) )
+        {
+            err = microlang_typecheck( tokens, "sSSSi" ); if( err !== '' ) return err . y1b;
+
+            vars[ t0s ] = microlang_between( tokens[ 4 ][ 'value' ], tokens[ 6 ][ 'value' ], tokens[ 8 ][ 'value' ] );
+
+            if( vars[ t0s ] === false )
             {
                 vars[ t0s ] = "";
+                vars[ tokens[ 10 ][ 'symbol' ] ] = 0;
             }
             else
             {
-                vars[ t0s ] = mb_substr( tokens[ 4 ][ 'value' ], i1 + mb_strlen( tokens[ 6 ][ 'value' ] ), i2 - i1 - mb_strlen( tokens[ 6 ][ 'value' ] ) );
+                vars[ tokens[ 10 ][ 'symbol' ] ] = 1;
             }
 
             done = true;

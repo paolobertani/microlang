@@ -205,6 +205,9 @@ a = between( b, "(", ")" )  // the text between the markers `(` and `)`
 a = between( b, "", "x" )   // the text between the beginning and "x"
 a = between( b, "x", "" )   // the text between "x" and the end of the string
 
+a = between( "  ()  ", "[", "]", i ) // `i` is set to `0` if no matches are found
+a = between( "  ()  ", "(", ")", i ) // `1` otherwise; `i` must be `int`     
+
 a = trim( b )               // removes leading and trailing spaces, LFs, CRs, Tabs
 
 idx = position( a, b )      // the starting position of `b` in `a`, -1 if not found
