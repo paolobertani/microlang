@@ -1068,7 +1068,7 @@ function microlang_splitline( $line, &$error )
         {
             if( $s === 's' )
             {
-                $part += $c;
+                $part .= $c;
                 continue;
             }
 
