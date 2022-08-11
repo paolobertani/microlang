@@ -8,7 +8,7 @@
 // A php microlang interpreter
 //
 // microlang version 1.3
-// php interpreter version 1.3.1
+// php interpreter version 1.3.2
 //
 // Copyright (c) 2022, Paolo Bertani - Kalei S.r.l.
 //
