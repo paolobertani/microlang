@@ -582,8 +582,284 @@ require $clean;
 
 
 
+//
+// Between()
+//
 
 
+
+// Test 43
+$input = [];
+$code = "";
+$code.= "string s\n";
+$code.= "s = between( \"foo   [[bar))   baz\", \"[[\", \"))\" )";
+require $execute;
+do_assert( @$s === 'bar' );
+require $clean;
+
+
+
+// Test 44
+$input = [];
+$code = "";
+$code.= "string s\n";
+$code.= "s = between( \"foo   [[bar[[boo))   baz\", \"[[\", \"))\" )";
+require $execute;
+do_assert( @$s === 'boo' );
+require $clean;
+
+
+
+// Test 45
+$input = [];
+$code = "";
+$code.= "string s\n";
+$code.= "s = between( \"foo   [[bar))   [[BOO)) baz\", \"[[\", \"))\" )";
+require $execute;
+do_assert( @$s === 'bar' );
+require $clean;
+
+
+
+// Test 46
+$input = [];
+$code = "";
+$code.= "string s\n";
+$code.= "s = between( \"foo   [[bar))   ))baz\", \"\", \"))\" )";
+require $execute;
+do_assert( @$s === 'foo   [[bar' );
+require $clean;
+
+
+
+// Test 47
+$input = [];
+$code = "";
+$code.= "string s\n";
+$code.= "s = between( \"foo   [[bar[[))   baz\", \"[[\", \"\" )";
+require $execute;
+do_assert( @$s === '))   baz' );
+require $clean;
+
+
+
+// Test 48
+$input = [];
+$code = "";
+$code.= "string s\n";
+$code.= "s = between( \"foo   [[bar))   baz\", \"\", \"\" )";
+require $execute;
+do_assert( @$s === 'foo   [[bar))   baz' );
+require $clean;
+
+
+
+// Test 49
+$input = [];
+$code = "";
+$code.= "string s\n";
+$code.= "s = between( \"\", \"\", \"\" )";
+require $execute;
+do_assert( @$s === '' );
+require $clean;
+
+
+
+// Test 50
+$input = [];
+$code = "";
+$code.= "string s\n";
+$code.= "s = between( \"foo   [[bar))   baz\", \"**\", \"))\" )";
+require $execute;
+do_assert( @$s === '' );
+require $clean;
+
+
+
+// Test 51
+$input = [];
+$code = "";
+$code.= "string s\n";
+$code.= "s = between( \"foo   [[bar))   baz\", \"[[\", \"--\" )";
+require $execute;
+do_assert( @$s === '' );
+require $clean;
+
+
+
+// Test 52
+$input = [];
+$code = "";
+$code.= "int s\n";
+$code.= "s = between( \"foo   [[bar))   baz\", \"[[\", \"))\" )";
+require $execute;
+do_assert();
+require $clean;
+
+
+
+// Test 53
+$input = [];
+$code = "";
+$code.= "string s\n";
+$code.= "s = between( \"foo   11bar))   baz\", 11, \"))\" )";
+require $execute;
+do_assert();
+require $clean;
+
+
+
+// Test 54
+$input = [];
+$code = "";
+$code.= "string s\n";
+$code.= "s = between( 10.4E2, \"[[\", \"))\" )";
+require $execute;
+do_assert();
+require $clean;
+
+
+
+// Test 55
+$input = [];
+$code = "";
+$code.= "string s\n";
+$code.= "int i\n";
+$code.= "s = between( \"foo   [[bar))   baz\", \"[[\", \"))\", i )";
+require $execute;
+do_assert( @$s === 'bar' && @$i === 1 );
+require $clean;
+
+
+
+// Test 56
+$input = [];
+$code = "";
+$code.= "string s\n";
+$code.= "int i\n";
+$code.= "s = between( \"foo   [[bar[[boo))   baz\", \"[[\", \"))\", i )";
+require $execute;
+do_assert( @$s === 'boo' && @$i === 1 );
+require $clean;
+
+
+
+// Test 57
+$input = [];
+$code = "";
+$code.= "string s\n";
+$code.= "int i\n";
+$code.= "s = between( \"foo   [[bar))   [[BOO)) baz\", \"[[\", \"))\", i )";
+require $execute;
+do_assert( @$s === 'bar' && @$i === 1 );
+require $clean;
+
+
+
+// Test 58
+$input = [];
+$code = "";
+$code.= "string s\n";
+$code.= "int i\n";
+$code.= "s = between( \"foo   [[bar))   ))baz\", \"\", \"))\", i )";
+require $execute;
+do_assert( @$s === 'foo   [[bar' && @$i === 1 );
+require $clean;
+
+
+
+// Test 59
+$input = [];
+$code = "";
+$code.= "string s\n";
+$code.= "int i\n";
+$code.= "s = between( \"foo   [[bar[[))   baz\", \"[[\", \"\", i )";
+require $execute;
+do_assert( @$s === '))   baz' && @$i === 1 );
+require $clean;
+
+
+
+// Test 60
+$input = [];
+$code = "";
+$code.= "string s\n";
+$code.= "int i\n";
+$code.= "s = between( \"foo   [[bar))   baz\", \"\", \"\", i )";
+require $execute;
+do_assert( @$s === 'foo   [[bar))   baz' && @$i === 1 );
+require $clean;
+
+
+
+// Test 61
+$input = [];
+$code = "";
+$code.= "string s\n";
+$code.= "int i\n";
+$code.= "s = between( \"\", \"\", \"\", i )";
+require $execute;
+do_assert( @$s === '' && @$i === 1 );
+require $clean;
+
+
+
+// Test 62
+$input = [];
+$code = "";
+$code.= "string s\n";
+$code.= "int i\n";
+$code.= "s = between( \"foo   [[bar))   baz\", \"**\", \"))\", i )";
+require $execute;
+do_assert( @$s === '' && @$i === 0 );
+require $clean;
+
+
+
+// Test 63
+$input = [];
+$code = "";
+$code.= "string s\n";
+$code.= "int i\n";
+$code.= "s = between( \"foo   [[bar))   baz\", \"[[\", \"--\", i )";
+require $execute;
+do_assert( @$s === '' && @$i === 0 );
+require $clean;
+
+
+
+// Test 64
+$input = [];
+$code = "";
+$code.= "int s\n";
+$code.= "s = between( \"foo   [[bar))   baz\", \"[[\", \"))\", i )";
+require $execute;
+do_assert();
+require $clean;
+
+
+
+// Test 65
+$input = [];
+$code = "";
+$code.= "string s\n";
+$code.= "int i\n";
+$code.= "s = between( \"foo   11bar))   baz\", 11, \"))\", i )";
+require $execute;
+do_assert();
+require $clean;
+
+
+
+// Test 66
+$input = [];
+$code = "";
+$code.= "string s\n";
+$code.= "int i\n";
+$code.= "s = between( 10.4E2, \"[[\", \"))\", i )";
+require $execute;
+do_assert();
+require $clean;
 
 
 
@@ -607,8 +883,9 @@ $osascript = exec("which osascript", $output, $result_code );
 if( $result_code !== 0 || $osascript === false || strpos( $osascript, "osascript" ) === false ) exit(0);
 
 $jstest =  ROOT_PATH . "/../js/openme.html";
-sleep( 2 );
+sleep( 1 );
 echo "Testing JavaScript interpreter... ";
+sleep( 1 );
 exec( "osascript -e 'tell application \"Safari\" to open ( (\"$jstest\") as POSIX file)'" );
 exec( "osascript -e 'set bounds of first window of application \"Safari\" to {50, 100, 800, 800}'" );
 echo "done.\n";
