@@ -442,9 +442,16 @@ function microlang( $code, &$vars, $max_iterations = 1000 )
         {
             $err = microlang_typecheck( $tokens, "iSS" ); if( $err !== '' ) return $err . $y1b;
 
-            $vars[ $t0s ] = mb_strpos( $tokens[ 4 ][ 'value' ], $tokens[ 6 ][ 'value' ] );
+            if( $tokens[ 4 ][ 'value' ] === '' || $tokens[ 6 ][ 'value' ] === '' )
+            {
+                $vars[ $t0s ] = -1;
+            }
+            else
+            {
+                $vars[ $t0s ] = mb_strpos( $tokens[ 4 ][ 'value' ], $tokens[ 6 ][ 'value' ] );
 
-            if( $vars[ $t0s ] === false ) $vars[ $t0s ] = -1;
+                if( $vars[ $t0s ] === false ) $vars[ $t0s ] = -1;
+            }
 
             $done = true;
         }
