@@ -25,10 +25,11 @@
 // ( INCLUDING NEGLIGENCE OR OTHERWISE ) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
-function microlang( code, vars, max_iterations )
+function microlang( code, vars, options )
 {
     var keywords,
         max_str_len,
+        max_iterations,
         labels,
         label,
         stack,
@@ -69,8 +70,8 @@ function microlang( code, vars, max_iterations )
 
 
     //
-    // implementation of php function to ease
-    // writing of php equivalent code in ja
+    // implementation of php functions to ease
+    // porting the php interpreter to js
     //
 
     var is_string = function( x )
@@ -863,10 +864,8 @@ function microlang( code, vars, max_iterations )
     };
 
 
-    if( typeof( max_iterations ) === 'undefined' )
-    {
-        max_iterations = 1000;
-    }
+
+    // Begin
 
 
 
@@ -900,7 +899,18 @@ function microlang( code, vars, max_iterations )
 
     error = { 'msg': '' };
 
-    max_str_len = 1024*1024;
+
+
+    if( ! isset( options ) )
+    {
+        options = [];
+    }
+
+    max_iterations = isset( options[ 'max_iterations' ] ) ? options[ 'max_iterations' ] : 1000;
+
+    max_str_len = isset( options[ 'max_str_len' ] ) ? options[ 'max_str_len' ] : 1048576;
+
+
 
     labels = {};
     stack = [];
@@ -1081,7 +1091,7 @@ function microlang( code, vars, max_iterations )
 
         y1b = y + 1;
 
-        if( iter > max_iterations && max_iterations !== 0 ) return "Max iterations exceeded: " + y1b;
+        if( iter > max_iterations && max_iterations !== 0 ) return "max iterations exceeded: " + y1b;
 
         tok = lines[ y ];
         tn = count( tok );
