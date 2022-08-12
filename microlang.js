@@ -95,13 +95,6 @@ function microlang( code, vars, options )
 
 
 
-    var isset = function( x )
-    {
-        return ( typeof( x ) !== 'undefined' && x !== null );
-    };
-
-
-
     var count = function( x )
     {
         return x.length;
@@ -901,14 +894,19 @@ function microlang( code, vars, options )
 
 
 
-    if( ! isset( options ) )
+    if( typeof( options ) === 'undefined' || options === null )
     {
-        options = [];
+        options = {};
     }
 
-    max_iterations = isset( options[ 'max_iterations' ] ) ? options[ 'max_iterations' ] : 1000;
+    if( typeof( options ) !== 'object' )
+    {
+        return "optional `options` parameter must be object"
+    }
 
-    max_str_len = isset( options[ 'max_str_len' ] ) ? options[ 'max_str_len' ] : 1048576;
+    max_iterations = typeof( options[ 'max_iterations' ] ) !== 'undefined' ? options[ 'max_iterations' ] : 1000;
+
+    max_str_len = typeof( options[ 'max_str_len' ] ) !== 'undefined' ? options[ 'max_str_len' ] : 1048576;
 
 
 
@@ -1112,13 +1110,13 @@ function microlang( code, vars, options )
             }
             else if( t[ 'type' ] === 'variable' )
             {
-                if( isset( typs[ t[ 'symbol' ] ] ) )
+                if( typeof( typs[ t[ 'symbol' ] ] ) !== 'undefined' && typs[ t[ 'symbol' ] ] !== null ) )
                 {
                     t[ 'value' ] = vars[ t[ 'symbol' ] ];
                     t[ 'vtype' ] = typs[ t[ 'symbol' ] ];
                     tokens.push( t );
                 }
-                else if( isset( labels[ t[ 'symbol' ] ] ) )
+                else if( typeof( labels[ t[ 'symbol' ] ] ) !== 'undefined' && labels[ t[ 'symbol' ] ] !== null )
                 {
                     t[ 'type' ] = 'label';
                     t[ 'value' ] = labels[ t[ 'symbol' ] ];
@@ -1146,7 +1144,7 @@ function microlang( code, vars, options )
 
             label = tokens[ 1 ][ 'symbol' ];
 
-            if( isset( labels[ label ] ) )
+            if( typeof( labels[ label ] ) !== 'undefined' && labels[ label ] !== null )
             {
                 iter++;
                 y = labels[ label ];
@@ -1164,7 +1162,7 @@ function microlang( code, vars, options )
 
             label = tokens[ 1 ][ 'symbol' ];
 
-            if( isset( labels[ label ] ) )
+            if( typeof( labels[ label ] ) !== 'undefined' && labels[ label ] !== null )
             {
                 stack.push( y );
                 iter++;
@@ -1229,7 +1227,7 @@ function microlang( code, vars, options )
             {
                 if( tokens[ j ][ 'type' ] === 'variable' )
                 {
-                    if( isset( typs[ tokens[ j ][ 'symbol' ] ] ) ) return "variable `" + tokens[ j ][ 'symbol' ] + "` already defined: " + y1b;
+                    if( typeof( typs[ tokens[ j ][ 'symbol' ] ] ) !== 'undefined' && typs[ tokens[ j ][ 'symbol' ] ] !== null ) return "variable `" + tokens[ j ][ 'symbol' ] + "` already defined: " + y1b;
 
                     typs[ tokens[ j ][ 'symbol' ] ] = t0s;
 
