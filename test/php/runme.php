@@ -862,6 +862,149 @@ do_assert();
 require $clean;
 
 
+//
+// Position()
+//
+
+
+
+// Test 67
+$input = [];
+$code = "";
+$code.= "int i\n";
+$code.= "i = position( \"    foo  \", \"foo\" )";
+require $execute;
+do_assert( @$i === 4 );
+require $clean;
+
+
+
+// Test 68
+$input = [];
+$code = "";
+$code.= "int i\n";
+$code.= "i = position( \"    foo  foo\", \"foo\" )";
+require $execute;
+do_assert( @$i === 4 );
+require $clean;
+
+
+
+// Test 69
+$input = [];
+$code = "";
+$code.= "int i\n";
+$code.= "i = position( \"    foo  \", \"fooo\" )";
+require $execute;
+do_assert( @$i === -1 );
+require $clean;
+
+
+
+// Test 70
+$input = [];
+$code = "";
+$code.= "int i\n";
+$code.= "i = position( \"    foo  \", \"\" )";
+require $execute;
+do_assert( @$i === -1 );
+require $clean;
+
+
+
+// Test 71
+$input = [];
+$code = "";
+$code.= "int i\n";
+$code.= "i = position( \"\", \"foo\" )";
+require $execute;
+do_assert( @$i === -1 );
+require $clean;
+
+
+
+// Test 72
+$input = [];
+$code = "";
+$code.= "int i\n";
+$code.= "i = position( \"\", \"\" )";
+require $execute;
+do_assert( @$i === -1 );
+require $clean;
+
+
+
+// Test 73
+$input = [];
+$code = "";
+$code.= "string i\n";
+$code.= "i = position( \"    foo  \", \"foo\" )";
+require $execute;
+do_assert();
+require $clean;
+
+
+
+// Test 74
+$input = [];
+$code = "";
+$code.= "int i\n";
+$code.= "i = position( \"    10  \", 10 )";
+require $execute;
+do_assert();
+require $clean;
+
+
+//
+// Len()
+//
+
+
+
+// Test 75
+$input = [];
+$code = "";
+$code.= "int i\n";
+$code.= "i = len( \"    foo  \" )";
+require $execute;
+do_assert( @$i === 9 );
+require $clean;
+
+
+
+// Test 76
+$input = [];
+$code = "";
+$code.= "int i\n";
+$code.= "i = len( \"\" )";
+require $execute;
+do_assert( @$i === 0 );
+require $clean;
+
+
+
+// Test 77
+$input = [];
+$code = "";
+$code.= "string i\n";
+$code.= "i = len( \"    foo  \" )";
+require $execute;
+do_assert();
+require $clean;
+
+
+
+// Test 78
+$input = [];
+$code = "";
+$code.= "int i\n";
+$code.= "i = len( 10 )";
+require $execute;
+do_assert();
+require $clean;
+
+
+
 
 
 
