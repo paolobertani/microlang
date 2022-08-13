@@ -70,9 +70,21 @@ function microlang( $code, &$vars, $options = null )
     }
 
     $max_iterations = isset( $options[ 'max_iterations' ] ) ? $options[ 'max_iterations' ] : 1000;
+    if( ! is_int( $max_iterations ) ) return "`max_iterations` options must be int";
 
     $max_str_len = isset( $options[ 'max_str_len' ] ) ? $options[ 'max_str_len' ] : 1048576;
+    if( ! is_int( $max_str_len ) ) return "`max_strlen` options must be int";
 
+    if( isset( $options[ 'action' ] ) )
+    {
+        if( $options[ 'action' ] === 'execute' ) $execute = true;
+        else if( $options[ 'action' ] === 'analyze' ) $execute = false;
+        else return "`action` option must be either `execute` or `analyze`";
+    }
+    else
+    {
+        $execute = true;
+    }
 
 
     $labels = [];
@@ -309,8 +321,11 @@ function microlang( $code, &$vars, $options = null )
             if( isset( $labels[ $label ] ) )
             {
                 $iter++;
-                $y = $labels[ $label ];
-                continue;
+                if( $execute )
+                {
+                    $y = $labels[ $label ];
+                    continue;
+                }
             }
             else return "unknown label `$label`: $y1b";
         }
@@ -326,10 +341,13 @@ function microlang( $code, &$vars, $options = null )
 
             if( isset( $labels[ $label ] ) )
             {
-                $stack[] = $y;
                 $iter++;
-                $y = $labels[ $label ];
-                continue;
+                if( $execute )
+                {
+                    $stack[] = $y;
+                    $y = $labels[ $label ];
+                    continue;
+                }
             }
             else return "unknown label `$label`: $y1b";
         }
@@ -341,9 +359,12 @@ function microlang( $code, &$vars, $options = null )
         {
             $done = true;
 
-            if( count( $stack ) === 0 ) return "return without gosub: $y1b";
-
-            $y = array_pop( $stack );
+            if( $execute )
+            {
+                if( count( $stack ) === 0 ) return "return without gosub: $y1b";
+                $y = array_pop( $stack );
+                continue;
+            }
         }
 
 
@@ -353,7 +374,10 @@ function microlang( $code, &$vars, $options = null )
         {
             $done = true;
 
-            break;
+            if( $execute )
+            {
+                break;
+            }
         }
 
 
@@ -361,7 +385,7 @@ function microlang( $code, &$vars, $options = null )
 
         if( ! $done && microlang_parse( $tokens, [ 'exit', '#' ] ) )
         {
-            $err = microlang_typecheck( $tokens, "*" ); if( $err !== '' ) return $err . $y1b;
+            $err = microlang_typecheck( $execute, $tokens, "*" ); if( $err !== '' ) return $err . $y1b;
 
             return $tokens[ 1 ][ 'value' ] . '';
         }
@@ -371,7 +395,7 @@ function microlang( $code, &$vars, $options = null )
 
         if( ! $done && ( microlang_parse( $tokens, [ 'int', '@', '=', '#' ] ) || microlang_parse( $tokens, [ 'float', '@', '=', '#' ] ) || microlang_parse( $tokens, [ 'string', '@', '=', '#' ] ) ) )
         {
-            $err = microlang_typecheck( $tokens, "U" . strtoupper( $tokens[0]['symbol'][0] ) ); if( $err !== '' ) return $err . $y1b;
+            $err = microlang_typecheck( $execute, $tokens, "U" . strtoupper( $tokens[0]['symbol'][0] ) ); if( $err !== '' ) return $err . $y1b;
 
             $typs[ $tokens[ 1 ][ 'symbol' ] ] = $tokens[ 0 ][ 'symbol' ];
             $vars[ $tokens[ 1 ][ 'symbol' ] ] = $tokens[ 3 ][ 'value' ];
@@ -424,9 +448,12 @@ function microlang( $code, &$vars, $options = null )
         {
             if( $t0s === 'cast_failed' ) return "`cast_failed` is a reserved variable name: $y1b";
 
-            $err = microlang_typecheck( $tokens, "+1" ); if( $err !== '' ) return $err . $y1b;
+            $err = microlang_typecheck( $execute, $tokens, "+1" ); if( $err !== '' ) return $err . $y1b;
 
-            $vars[ $t0s ] = $tokens[ 2 ][ 'value' ];
+            if( $execute )
+            {
+                $vars[ $t0s ] = $tokens[ 2 ][ 'value' ];
+            }
 
             $done = true;
         }
@@ -446,9 +473,12 @@ function microlang( $code, &$vars, $options = null )
 
         if( ! $done && microlang_parse( $tokens, [ '@', '=', 'substring', '(', '#', ',', '#', ',', '#', ')' ] ) )
         {
-            $err = microlang_typecheck( $tokens, "sSII" ); if( $err !== '' ) return $err . $y1b;
+            $err = microlang_typecheck( $execute, $tokens, "sSII" ); if( $err !== '' ) return $err . $y1b;
 
-            $vars[ $t0s ] = mb_substr8( $tokens[ 4 ][ 'value' ], $tokens[ 6 ][ 'value' ], $tokens[ 8 ][ 'value' ] );
+            if( $execute )
+            {
+                $vars[ $t0s ] = mb_substr8( $tokens[ 4 ][ 'value' ], $tokens[ 6 ][ 'value' ], $tokens[ 8 ][ 'value' ] );
+            }
 
             $done = true;
         }
@@ -458,17 +488,20 @@ function microlang( $code, &$vars, $options = null )
 
         if( ! $done && microlang_parse( $tokens, [ '@', '=', 'position', '(', '#', ',', '#', ')' ] ) )
         {
-            $err = microlang_typecheck( $tokens, "iSS" ); if( $err !== '' ) return $err . $y1b;
+            $err = microlang_typecheck( $execute, $tokens, "iSS" ); if( $err !== '' ) return $err . $y1b;
 
-            if( $tokens[ 4 ][ 'value' ] === '' || $tokens[ 6 ][ 'value' ] === '' )
+            if( $execute )
             {
-                $vars[ $t0s ] = -1;
-            }
-            else
-            {
-                $vars[ $t0s ] = mb_strpos( $tokens[ 4 ][ 'value' ], $tokens[ 6 ][ 'value' ] );
+                if( $tokens[ 4 ][ 'value' ] === '' || $tokens[ 6 ][ 'value' ] === '' )
+                {
+                    $vars[ $t0s ] = -1;
+                }
+                else
+                {
+                    $vars[ $t0s ] = mb_strpos( $tokens[ 4 ][ 'value' ], $tokens[ 6 ][ 'value' ] );
 
-                if( $vars[ $t0s ] === false ) $vars[ $t0s ] = -1;
+                    if( $vars[ $t0s ] === false ) $vars[ $t0s ] = -1;
+                }
             }
 
             $done = true;
@@ -479,11 +512,13 @@ function microlang( $code, &$vars, $options = null )
 
         if( ! $done && microlang_parse( $tokens, [ '@', '=', 'replace', '(', '#', ',', '#', ',', '#', ')' ] ) )
         {
-            $err = microlang_typecheck( $tokens, "sSII" ); if( $err !== '' ) return $err . $y1b;
+            $err = microlang_typecheck( $execute, $tokens, "sSII" ); if( $err !== '' ) return $err . $y1b;
 
-            $vars[ $t0s ] = str_replace( $tokens[ 6 ][ 'value' ], $tokens[ 8 ][ 'value' ], $tokens[ 4 ][ 'value' ] );
-
-            if( mb_strlen( $vars[ $t0s ] ) > $max_str_len ) return "string too long: $y1b";
+            if( $execute )
+            {
+                $vars[ $t0s ] = str_replace( $tokens[ 6 ][ 'value' ], $tokens[ 8 ][ 'value' ], $tokens[ 4 ][ 'value' ] );
+                if( mb_strlen( $vars[ $t0s ] ) > $max_str_len ) return "string too long: $y1b";
+            }
 
             $done = true;
         }
@@ -493,29 +528,33 @@ function microlang( $code, &$vars, $options = null )
 
         if( ! $done && microlang_parse( $tokens, [ '@', '=', 'between', '(', '#', ',', '#', ',', '#', ')' ] ) )
         {
-            $err = microlang_typecheck( $tokens, "sSSS" ); if( $err !== '' ) return $err . $y1b;
+            $err = microlang_typecheck( $execute, $tokens, "sSSS" ); if( $err !== '' ) return $err . $y1b;
 
-            $vars[ $t0s ] = microlang_between( $tokens[ 4 ][ 'value' ], $tokens[ 6 ][ 'value' ], $tokens[ 8 ][ 'value' ] );
-
-            if( $vars[ $t0s ] === false ) $vars[ $t0s ] = "";
+            if( $execute )
+            {
+                $vars[ $t0s ] = microlang_between( $tokens[ 4 ][ 'value' ], $tokens[ 6 ][ 'value' ], $tokens[ 8 ][ 'value' ] );
+                if( $vars[ $t0s ] === false ) $vars[ $t0s ] = "";
+            }
 
             $done = true;
         }
 
         if( ! $done && microlang_parse( $tokens, [ '@', '=', 'between', '(', '#', ',', '#', ',', '#', ',', '@', ')' ] ) )
         {
-            $err = microlang_typecheck( $tokens, "sSSSi" ); if( $err !== '' ) return $err . $y1b;
+            $err = microlang_typecheck( $execute, $tokens, "sSSSi" ); if( $err !== '' ) return $err . $y1b;
 
-            $vars[ $t0s ] = microlang_between( $tokens[ 4 ][ 'value' ], $tokens[ 6 ][ 'value' ], $tokens[ 8 ][ 'value' ] );
-
-            if( $vars[ $t0s ] === false )
+            if( $execute )
             {
-                $vars[ $t0s ] = "";
-                $vars[ $tokens[ 10 ][ 'symbol' ] ] = 0;
-            }
-            else
-            {
-                $vars[ $tokens[ 10 ][ 'symbol' ] ] = 1;
+                $vars[ $t0s ] = microlang_between( $tokens[ 4 ][ 'value' ], $tokens[ 6 ][ 'value' ], $tokens[ 8 ][ 'value' ] );
+                if( $vars[ $t0s ] === false )
+                {
+                    $vars[ $t0s ] = "";
+                    $vars[ $tokens[ 10 ][ 'symbol' ] ] = 0;
+                }
+                else
+                {
+                    $vars[ $tokens[ 10 ][ 'symbol' ] ] = 1;
+                }
             }
 
             $done = true;
@@ -526,9 +565,12 @@ function microlang( $code, &$vars, $options = null )
 
         if( ! $done && microlang_parse( $tokens, [ '@', '=', 'trim', '(', '#', ')' ] ) )
         {
-            $err = microlang_typecheck( $tokens, "sS" ); if( $err !== '' ) return $err . $y1b;
+            $err = microlang_typecheck( $execute, $tokens, "sS" ); if( $err !== '' ) return $err . $y1b;
 
-            $vars[ $t0s ] = trim( $tokens[ 4 ][ 'value' ], " \n\r\t" );
+            if( $execute )
+            {
+                $vars[ $t0s ] = trim( $tokens[ 4 ][ 'value' ], " \n\r\t" );
+            }
 
             $done = true;
         }
@@ -539,9 +581,12 @@ function microlang( $code, &$vars, $options = null )
 
         if( ! $done && microlang_parse( $tokens, [ '@', '=', 'len', '(', '#', ')' ] ) )
         {
-            $err = microlang_typecheck( $tokens, "iS" ); if( $err !== '' ) return $err . $y1b;
+            $err = microlang_typecheck( $execute, $tokens, "iS" ); if( $err !== '' ) return $err . $y1b;
 
-            $vars[ $t0s ] = mb_strlen( $tokens[ 4 ][ 'value' ] );
+            if( $execute )
+            {
+                $vars[ $t0s ] = mb_strlen( $tokens[ 4 ][ 'value' ] );
+            }
 
             $done = true;
         }
@@ -551,9 +596,12 @@ function microlang( $code, &$vars, $options = null )
 
         if( ! $done && microlang_parse( $tokens, [ '@', '=', 'typeof', '(', '#', ')' ] ) )
         {
-            $err = microlang_typecheck( $tokens, "s+" ); if( $err !== '' ) return $err . $y1b;
+            $err = microlang_typecheck( $execute, $tokens, "s+" ); if( $err !== '' ) return $err . $y1b;
 
-            $vars[ $t0s ] = $tokens[ 4 ][ 'vtype' ];
+            if( $execute )
+            {
+                $vars[ $t0s ] = $tokens[ 4 ][ 'vtype' ];
+            }
 
             $done = true;
         }
@@ -563,24 +611,27 @@ function microlang( $code, &$vars, $options = null )
 
         if( ! $done && microlang_parse( $tokens, [ '@', '=', 'int', '(', '#', ')' ] ) )
         {
-            $err = microlang_typecheck( $tokens, "i*" ); if( $err !== '' ) return $err . $y1b;
+            $err = microlang_typecheck( $execute, $tokens, "i*" ); if( $err !== '' ) return $err . $y1b;
 
-            if( $tokens[ 4 ][ 'vtype' ] === 'string' && preg_match( '/^-?\d+(e?\d+|E?\d+|(e-)?\d+|(E-)?\d+)?$/', $tokens[ 4 ][ 'value' ] ) === 0 && preg_match( '/^-?\d*\.\d+(e?\d+|E?\d+|(e-)?\d+|(E-)?\d+)?$/', $tokens[ 4 ][ 'value' ] ) === 0 )
+            if( $execute )
             {
-                $vars[ $t0s ] = ( int )0;
-                $vars[ 'cast_failed' ] = 1;
-            }
-            else
-            {
-                if( floatval( $tokens[ 4 ][ 'value' ] ) > PHP_INT_MAX || floatval( $tokens[ 4 ][ 'value' ] ) < PHP_INT_MIN )
+                if( $tokens[ 4 ][ 'vtype' ] === 'string' && preg_match( '/^-?\d+(e?\d+|E?\d+|(e-)?\d+|(E-)?\d+)?$/', $tokens[ 4 ][ 'value' ] ) === 0 && preg_match( '/^-?\d*\.\d+(e?\d+|E?\d+|(e-)?\d+|(E-)?\d+)?$/', $tokens[ 4 ][ 'value' ] ) === 0 )
                 {
                     $vars[ $t0s ] = ( int )0;
                     $vars[ 'cast_failed' ] = 1;
                 }
                 else
                 {
-                    $vars[ $t0s ] = intval( $tokens[ 4 ][ 'value' ] );
-                    $vars[ 'cast_failed' ] = 0;
+                    if( floatval( $tokens[ 4 ][ 'value' ] ) > PHP_INT_MAX || floatval( $tokens[ 4 ][ 'value' ] ) < PHP_INT_MIN )
+                    {
+                        $vars[ $t0s ] = ( int )0;
+                        $vars[ 'cast_failed' ] = 1;
+                    }
+                    else
+                    {
+                        $vars[ $t0s ] = intval( $tokens[ 4 ][ 'value' ] );
+                        $vars[ 'cast_failed' ] = 0;
+                    }
                 }
             }
 
@@ -592,19 +643,22 @@ function microlang( $code, &$vars, $options = null )
 
         if( ! $done && microlang_parse( $tokens, [ '@', '=', 'float', '(', '#', ')' ] ) )
         {
-            $err = microlang_typecheck( $tokens, "n*" ); if( $err !== '' ) return $err . $y1b;
+            $err = microlang_typecheck( $execute, $tokens, "n*" ); if( $err !== '' ) return $err . $y1b;
 
-            if( $tokens[ 4 ][ 'vtype' ] === 'string' && preg_match( '/^-?\d+(e?\d+|E?\d+|(e-)?\d+|(E-)?\d+)?$/', $tokens[ 4 ][ 'value' ] ) === 0 && preg_match( '/^-?\d*\.\d+(e?\d+|E?\d+|(e-)?\d+|(E-)?\d+)?$/', $tokens[ 4 ][ 'value' ] ) === 0 )
+            if( $execute )
             {
-                $vars[ $t0s ] = ( float )0;
-                $vars[ 'cast_failed' ] = 1;
-                $typs[ $t0s ] = 'float';
-            }
-            else
-            {
-                $vars[ $t0s ] = floatval( $tokens[ 4 ][ 'value' ] );
-                $vars[ 'cast_failed' ] = 0;
-                $typs[ $t0s ] = 'float';
+                if( $tokens[ 4 ][ 'vtype' ] === 'string' && preg_match( '/^-?\d+(e?\d+|E?\d+|(e-)?\d+|(E-)?\d+)?$/', $tokens[ 4 ][ 'value' ] ) === 0 && preg_match( '/^-?\d*\.\d+(e?\d+|E?\d+|(e-)?\d+|(E-)?\d+)?$/', $tokens[ 4 ][ 'value' ] ) === 0 )
+                {
+                    $vars[ $t0s ] = ( float )0;
+                    $vars[ 'cast_failed' ] = 1;
+                    $typs[ $t0s ] = 'float';
+                }
+                else
+                {
+                    $vars[ $t0s ] = floatval( $tokens[ 4 ][ 'value' ] );
+                    $vars[ 'cast_failed' ] = 0;
+                    $typs[ $t0s ] = 'float';
+                }
             }
 
             $done = true;
@@ -615,9 +669,12 @@ function microlang( $code, &$vars, $options = null )
 
         if( ! $done && microlang_parse( $tokens, [ '@', '=', 'string', '(', '#', ')' ] ) )
         {
-            $err = microlang_typecheck( $tokens, "s*" ); if( $err !== '' ) return $err . $y1b;
+            $err = microlang_typecheck( $execute, $tokens, "s*" ); if( $err !== '' ) return $err . $y1b;
 
-            $vars[ $t0s ] = '' . $tokens[ 4 ][ 'value' ];
+            if( $execute )
+            {
+                $vars[ $t0s ] = '' . $tokens[ 4 ][ 'value' ];
+            }
 
             $done = true;
         }
@@ -627,23 +684,26 @@ function microlang( $code, &$vars, $options = null )
 
         if( ! $done && microlang_parse( $tokens, [ '@', '=', '#', '+', '#' ] ) )
         {
-            $err = microlang_typecheck( $tokens, "+12" ); if( $err !== '' ) return $err . $y1b;
+            $err = microlang_typecheck( $execute, $tokens, "+12" ); if( $err !== '' ) return $err . $y1b;
 
-            if( $tokens[ 2 ][ 'vtype' ] === 'string' )
+            if( $execute )
             {
-                $vars[ $t0s ] = $tokens[ 2 ][ 'value' ] . $tokens[ 4 ][ 'value' ];
+                if( $tokens[ 2 ][ 'vtype' ] === 'string' )
+                {
+                    $vars[ $t0s ] = $tokens[ 2 ][ 'value' ] . $tokens[ 4 ][ 'value' ];
 
-                if( mb_strlen( $vars[ $t0s ] ) > $max_str_len ) return "string too long: $y1b";
-            }
-            elseif( $tokens[ 2 ][ 'vtype' ] === 'int' )
-            {
-                $vars[ $t0s ] = $tokens[ 2 ][ 'value' ] + $tokens[ 4 ][ 'value' ];
+                    if( mb_strlen( $vars[ $t0s ] ) > $max_str_len ) return "string too long: $y1b";
+                }
+                elseif( $tokens[ 2 ][ 'vtype' ] === 'int' )
+                {
+                    $vars[ $t0s ] = $tokens[ 2 ][ 'value' ] + $tokens[ 4 ][ 'value' ];
 
-                if( $vars[ $t0s ] > PHP_INT_MAX || $vars[ $t0s ] < PHP_INT_MIN ) return "overflow: $y1b";
-            }
-            elseif( $tokens[ 2 ][ 'vtype' ] === 'float' )
-            {
-                $vars[ $t0s ] = $tokens[ 2 ][ 'value' ] + $tokens[ 4 ][ 'value' ];
+                    if( $vars[ $t0s ] > PHP_INT_MAX || $vars[ $t0s ] < PHP_INT_MIN ) return "overflow: $y1b";
+                }
+                elseif( $tokens[ 2 ][ 'vtype' ] === 'float' )
+                {
+                    $vars[ $t0s ] = $tokens[ 2 ][ 'value' ] + $tokens[ 4 ][ 'value' ];
+                }
             }
 
             $done = true;
@@ -654,17 +714,20 @@ function microlang( $code, &$vars, $options = null )
 
         if( ! $done && microlang_parse( $tokens, [ '@', '=', '#', '-', '#' ] ) )
         {
-            $err = microlang_typecheck( $tokens, "n12" ); if( $err !== '' ) return $err . $y1b;
+            $err = microlang_typecheck( $execute, $tokens, "n12" ); if( $err !== '' ) return $err . $y1b;
 
-            if( $tokens[ 2 ][ 'vtype' ] === 'int' )
+            if( $execute )
             {
-                $vars[ $t0s ] = $tokens[ 2 ][ 'value' ] - $tokens[ 4 ][ 'value' ];
+                if( $tokens[ 2 ][ 'vtype' ] === 'int' )
+                {
+                    $vars[ $t0s ] = $tokens[ 2 ][ 'value' ] - $tokens[ 4 ][ 'value' ];
 
-                if( $vars[ $t0s ] > PHP_INT_MAX || $vars[ $t0s ] < PHP_INT_MIN ) return "overflow: $y1b";
-            }
-            elseif( $tokens[ 2 ][ 'vtype' ] === 'float' )
-            {
-                $vars[ $t0s ] = $tokens[ 2 ][ 'value' ] - $tokens[ 4 ][ 'value' ];
+                    if( $vars[ $t0s ] > PHP_INT_MAX || $vars[ $t0s ] < PHP_INT_MIN ) return "overflow: $y1b";
+                }
+                elseif( $tokens[ 2 ][ 'vtype' ] === 'float' )
+                {
+                    $vars[ $t0s ] = $tokens[ 2 ][ 'value' ] - $tokens[ 4 ][ 'value' ];
+                }
             }
 
             $done = true;
@@ -675,25 +738,28 @@ function microlang( $code, &$vars, $options = null )
 
         if( ! $done && microlang_parse( $tokens, [ '@', '=', '#', '*', '#' ] ) )
         {
-            $err = microlang_typecheck( $tokens, "n12" ); if( $err !== '' ) return $err . $y1b;
+            $err = microlang_typecheck( $execute, $tokens, "n12" ); if( $err !== '' ) return $err . $y1b;
 
-            if( $tokens[ 2 ][ 'vtype' ] === 'int' )
+            if( $execute )
             {
-                $rt = 'int';
-                if( isset( $typs[ $t0s ] ) && $typs[ $t0s ] !== $rt ) return "variable `$t0s` must be $rt: $y1b";
-                $typs[ $t0s ] = $rt;
+                if( $tokens[ 2 ][ 'vtype' ] === 'int' )
+                {
+                    $rt = 'int';
+                    if( isset( $typs[ $t0s ] ) && $typs[ $t0s ] !== $rt ) return "variable `$t0s` must be $rt: $y1b";
+                    $typs[ $t0s ] = $rt;
 
-                $vars[ $t0s ] = $tokens[ 2 ][ 'value' ] * $tokens[ 4 ][ 'value' ];
+                    $vars[ $t0s ] = $tokens[ 2 ][ 'value' ] * $tokens[ 4 ][ 'value' ];
 
-                if( $vars[ $t0s ] > PHP_INT_MAX || $vars[ $t0s ] < PHP_INT_MIN ) return "overflow: $y1b";
-            }
-            elseif( $tokens[ 2 ][ 'vtype' ] === 'float' )
-            {
-                $rt = 'float';
-                if( isset( $typs[ $t0s ] ) && $typs[ $t0s ] !== $rt ) return "variable `$t0s` must be $rt: $y1b";
-                $typs[ $t0s ] = $rt;
+                    if( $vars[ $t0s ] > PHP_INT_MAX || $vars[ $t0s ] < PHP_INT_MIN ) return "overflow: $y1b";
+                }
+                elseif( $tokens[ 2 ][ 'vtype' ] === 'float' )
+                {
+                    $rt = 'float';
+                    if( isset( $typs[ $t0s ] ) && $typs[ $t0s ] !== $rt ) return "variable `$t0s` must be $rt: $y1b";
+                    $typs[ $t0s ] = $rt;
 
-                $vars[ $t0s ] = $tokens[ 2 ][ 'value' ] * $tokens[ 4 ][ 'value' ];
+                    $vars[ $t0s ] = $tokens[ 2 ][ 'value' ] * $tokens[ 4 ][ 'value' ];
+                }
             }
 
             $done = true;
@@ -704,21 +770,23 @@ function microlang( $code, &$vars, $options = null )
 
         if( ! $done && microlang_parse( $tokens, [ '@', '=', '#', '/', '#' ] ) )
         {
-            $err = microlang_typecheck( $tokens, "n12" ); if( $err !== '' ) return $err . $y1b;
+            $err = microlang_typecheck( $execute, $tokens, "n12" ); if( $err !== '' ) return $err . $y1b;
 
-            if( $tokens[ 4 ][ 'value' ] === 0 ) return "division by zero: $y1b";
-
-            if( $tokens[ 2 ][ 'vtype' ] === 'int' )
+            if( $execute )
             {
-                $vars[ $t0s ] = $tokens[ 2 ][ 'value' ] / $tokens[ 4 ][ 'value' ];
+                if( $tokens[ 4 ][ 'value' ] === 0 ) return "division by zero: $y1b";
+                if( $tokens[ 2 ][ 'vtype' ] === 'int' )
+                {
+                    $vars[ $t0s ] = $tokens[ 2 ][ 'value' ] / $tokens[ 4 ][ 'value' ];
 
-                if( $vars[ $t0s ] > PHP_INT_MAX || $vars[ $t0s ] < PHP_INT_MIN ) return "overflow: $y1b";
+                    if( $vars[ $t0s ] > PHP_INT_MAX || $vars[ $t0s ] < PHP_INT_MIN ) return "overflow: $y1b";
 
-                $vars[ $t0s ] = intdiv( $tokens[ 2 ][ 'value' ], $tokens[ 4 ][ 'value' ] );
-            }
-            elseif( $tokens[ 2 ][ 'vtype' ] === 'float' )
-            {
-                $vars[ $t0s ] = $tokens[ 2 ][ 'value' ] / $tokens[ 4 ][ 'value' ];
+                    $vars[ $t0s ] = intdiv( $tokens[ 2 ][ 'value' ], $tokens[ 4 ][ 'value' ] );
+                }
+                elseif( $tokens[ 2 ][ 'vtype' ] === 'float' )
+                {
+                    $vars[ $t0s ] = $tokens[ 2 ][ 'value' ] / $tokens[ 4 ][ 'value' ];
+                }
             }
 
             $done = true;
@@ -729,11 +797,13 @@ function microlang( $code, &$vars, $options = null )
 
         if( ! $done && microlang_parse( $tokens, [ '@', '=', '#', '%', '#' ] ) )
         {
-            $err = microlang_typecheck( $tokens, "iII" ); if( $err !== '' ) return $err . $y1b;
+            $err = microlang_typecheck( $execute, $tokens, "iII" ); if( $err !== '' ) return $err . $y1b;
 
-            if( $tokens[ 4 ][ 'value' ] === 0 ) return "division by zero: $y1b";
-
-            $vars[ $t0s ] = $tokens[ 2 ][ 'value' ] % $tokens[ 4 ][ 'value' ];
+            if( $execute )
+            {
+                if( $tokens[ 4 ][ 'value' ] === 0 ) return "division by zero: $y1b";
+                $vars[ $t0s ] = $tokens[ 2 ][ 'value' ] % $tokens[ 4 ][ 'value' ];
+            }
 
             $done = true;
         }
@@ -743,147 +813,154 @@ function microlang( $code, &$vars, $options = null )
 
         if( ! $done && ( microlang_parse( $tokens, [ 'if', '#', '~', '#', 'then', ':' ] ) || microlang_parse( $tokens, [ 'if', '#', '~', '#', 'then', ':', 'else', ':' ] ) ) )
         {
-            $err = microlang_typecheck( $tokens, "*1" ); if( $err !== '' ) return $err . $y1b;
+            $err = microlang_typecheck( $execute, $tokens, "*1" ); if( $err !== '' ) return $err . $y1b;
 
             if( $tokens[ 5 ][ 'value' ] === null ) return "undefined label `" . $tokens[ 5 ][ 'symbol' ] ."`: $y5b";
             if( $tn === 8 && $tokens[ 7 ][ 'value' ] === null ) return "undefined label `" . $tokens[ 7 ][ 'symbol' ] . "`: $y5b";
 
-            if( $tokens[ 2 ][ 'symbol' ] === '==' )
+            if( $execute )
             {
-                if( $tokens[ 1 ][ 'value' ] == $tokens[ 3 ][ 'value' ] )
+                if( $tokens[ 2 ][ 'symbol' ] === '==' )
                 {
-                    $y = $tokens[ 5 ][ 'value' ];
-                    $iter++;
-                    continue;
-                }
-                else
-                {
-                    if( $tn === 8 && $tokens[ 7 ][ 'value' ] !== null )
+                    if( $tokens[ 1 ][ 'value' ] == $tokens[ 3 ][ 'value' ] )
                     {
-                        $y = $tokens[ 7 ][ 'value' ];
+                        $y = $tokens[ 5 ][ 'value' ];
                         $iter++;
                         continue;
                     }
                     else
                     {
-                        $done = true;
+                        if( $tn === 8 && $tokens[ 7 ][ 'value' ] !== null )
+                        {
+                            $y = $tokens[ 7 ][ 'value' ];
+                            $iter++;
+                            continue;
+                        }
+                        else
+                        {
+                            $done = true;
+                        }
+                    }
+                }
+
+                if( $tokens[ 2 ][ 'symbol' ] === '!=' )
+                {
+                    if( $tokens[ 1 ][ 'value' ] != $tokens[ 3 ][ 'value' ] )
+                    {
+                        $y = $tokens[ 5 ][ 'value' ];
+                        $iter++;
+                        continue;
+                    }
+                    else
+                    {
+                        if( $tn === 8 && $tokens[ 7 ][ 'value' ] !== null )
+                        {
+                            $y = $tokens[ 7 ][ 'value' ];
+                            $iter++;
+                            continue;
+                        }
+                        else
+                        {
+                            $done = true;
+                        }
+                    }
+                }
+
+                if( $tokens[ 2 ][ 'symbol' ] === '>' )
+                {
+                    if( $tokens[ 1 ][ 'value' ] > $tokens[ 3 ][ 'value' ] )
+                    {
+                        $y = $tokens[ 5 ][ 'value' ];
+                        $iter++;
+                        continue;
+                    }
+                    else
+                    {
+                        if( $tn === 8 && $tokens[ 7 ][ 'value' ] !== null )
+                        {
+                            $y = $tokens[ 7 ][ 'value' ];
+                            $iter++;
+                            continue;
+                        }
+                        else
+                        {
+                            $done = true;
+                        }
+                    }
+                }
+
+                if( $tokens[ 2 ][ 'symbol' ] === '<' )
+                {
+                    if( $tokens[ 1 ][ 'value' ] < $tokens[ 3 ][ 'value' ] )
+                    {
+                        $y = $tokens[ 5 ][ 'value' ];
+                        $iter++;
+                        continue;
+                    }
+                    else
+                    {
+                        if( $tn === 8 && $tokens[ 7 ][ 'value' ] !== null )
+                        {
+                            $y = $tokens[ 7 ][ 'value' ];
+                            $iter++;
+                            continue;
+                        }
+                        else
+                        {
+                            $done = true;
+                        }
+                    }
+                }
+
+                if( $tokens[ 2 ][ 'symbol' ] === '<=' )
+                {
+                    if( $tokens[ 1 ][ 'value' ] <= $tokens[ 3 ][ 'value' ] )
+                    {
+                        $y = $tokens[ 5 ][ 'value' ];
+                        $iter++;
+                        continue;
+                    }
+                    else
+                    {
+                        if( $tn === 8 && $tokens[ 7 ][ 'value' ] !== null )
+                        {
+                            $y = $tokens[ 7 ][ 'value' ];
+                            $iter++;
+                            continue;
+                        }
+                        else
+                        {
+                            $done = true;
+                        }
+                    }
+                }
+
+                if( $tokens[ 2 ][ 'symbol' ] === '>=' )
+                {
+                    if( $tokens[ 1 ][ 'value' ] >= $tokens[ 3 ][ 'value' ] )
+                    {
+                        $y = $tokens[ 5 ][ 'value' ];
+                        $iter++;
+                        continue;
+                    }
+                    else
+                    {
+                        if( $tn === 8 && $tokens[ 7 ][ 'value' ] !== null )
+                        {
+                            $y = $tokens[ 7 ][ 'value' ];
+                            $iter++;
+                            continue;
+                        }
+                        else
+                        {
+                            $done = true;
+                        }
                     }
                 }
             }
-
-            if( $tokens[ 2 ][ 'symbol' ] === '!=' )
+            else
             {
-                if( $tokens[ 1 ][ 'value' ] != $tokens[ 3 ][ 'value' ] )
-                {
-                    $y = $tokens[ 5 ][ 'value' ];
-                    $iter++;
-                    continue;
-                }
-                else
-                {
-                    if( $tn === 8 && $tokens[ 7 ][ 'value' ] !== null )
-                    {
-                        $y = $tokens[ 7 ][ 'value' ];
-                        $iter++;
-                        continue;
-                    }
-                    else
-                    {
-                        $done = true;
-                    }
-                }
-            }
-
-            if( $tokens[ 2 ][ 'symbol' ] === '>' )
-            {
-                if( $tokens[ 1 ][ 'value' ] > $tokens[ 3 ][ 'value' ] )
-                {
-                    $y = $tokens[ 5 ][ 'value' ];
-                    $iter++;
-                    continue;
-                }
-                else
-                {
-                    if( $tn === 8 && $tokens[ 7 ][ 'value' ] !== null )
-                    {
-                        $y = $tokens[ 7 ][ 'value' ];
-                        $iter++;
-                        continue;
-                    }
-                    else
-                    {
-                        $done = true;
-                    }
-                }
-            }
-
-            if( $tokens[ 2 ][ 'symbol' ] === '<' )
-            {
-                if( $tokens[ 1 ][ 'value' ] < $tokens[ 3 ][ 'value' ] )
-                {
-                    $y = $tokens[ 5 ][ 'value' ];
-                    $iter++;
-                    continue;
-                }
-                else
-                {
-                    if( $tn === 8 && $tokens[ 7 ][ 'value' ] !== null )
-                    {
-                        $y = $tokens[ 7 ][ 'value' ];
-                        $iter++;
-                        continue;
-                    }
-                    else
-                    {
-                        $done = true;
-                    }
-                }
-            }
-
-            if( $tokens[ 2 ][ 'symbol' ] === '<=' )
-            {
-                if( $tokens[ 1 ][ 'value' ] <= $tokens[ 3 ][ 'value' ] )
-                {
-                    $y = $tokens[ 5 ][ 'value' ];
-                    $iter++;
-                    continue;
-                }
-                else
-                {
-                    if( $tn === 8 && $tokens[ 7 ][ 'value' ] !== null )
-                    {
-                        $y = $tokens[ 7 ][ 'value' ];
-                        $iter++;
-                        continue;
-                    }
-                    else
-                    {
-                        $done = true;
-                    }
-                }
-            }
-
-            if( $tokens[ 2 ][ 'symbol' ] === '>=' )
-            {
-                if( $tokens[ 1 ][ 'value' ] >= $tokens[ 3 ][ 'value' ] )
-                {
-                    $y = $tokens[ 5 ][ 'value' ];
-                    $iter++;
-                    continue;
-                }
-                else
-                {
-                    if( $tn === 8 && $tokens[ 7 ][ 'value' ] !== null )
-                    {
-                        $y = $tokens[ 7 ][ 'value' ];
-                        $iter++;
-                        continue;
-                    }
-                    else
-                    {
-                        $done = true;
-                    }
-                }
+                $done = true;
             }
         }
 
@@ -966,7 +1043,7 @@ function microlang_parse( $tokens, $expected )
 
 
 
-function microlang_typecheck( $tok, $types )
+function microlang_typecheck( $exe, $tok, $types )
 {
     $tokens = [];
 
@@ -1020,7 +1097,7 @@ function microlang_typecheck( $tok, $types )
             continue;
         }
 
-        if( $isvar && $v === null ) return "variable `$y` has undefined value: ";
+        if( $isvar && $v === null && $exe ) return "variable `$y` has undefined value: ";
 
         // a value or a variable with defined value
 

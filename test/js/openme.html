@@ -11,6 +11,7 @@
             var output;
             var code;
             var error;
+            var stage;
         </script>
 
         <script type="text/javascript" src="../../microlang.js"></script>
@@ -60,6 +61,29 @@
                     }
                 }
 
+                stage = 'analyzing';
+
+                error = microlang( code, io, { 'action': 'analyze' } );
+
+                if( error !== '' )
+                {
+                    return;
+                }
+
+                // --
+
+                io = {};
+
+                for( key in input )
+                {
+                    if( input.hasOwnProperty( key ) )
+                    {
+                        io[key] = input[key];
+                    }
+                }
+
+                stage = 'executing';
+
                 error = microlang( code, io );
 
                 output = {};
@@ -81,10 +105,10 @@
                     input_str,
                     output_str;
 
-                if( typeof( assertion ) === 'undefined' )
+                if( assertion === 'a' || assertion === 'e' )
                 {
-                    assertion = null;
-                    assertion_str = 'an error must occurr';
+                    if( assertion === 'a' )     assertion_str = "an error must occurr when analyzing code";
+                    else if( assertion === 'e' ) assertion_str = "an error must occurr when executing code";
                 }
 
                 if( assertion === true && error === '' )
@@ -97,25 +121,41 @@
                     result = "test " + microlang_test_number + ":" + microlang_test_count + " failed: assertion is not true";
                 }
 
-                if( assertion === null && error === '')
+                if( ( assertion === true || assertion === false ) && error !== '')
                 {
-                    result =  "test " + microlang_test_number + ":" + microlang_test_count + " failed: an error has NOT occurred";
+                    result =  "test " + microlang_test_number + ":" + microlang_test_count + " FAILED WITH MICROLANG ERROR when " + stage + ' code';
                 }
 
-                if( assertion === true && error !== '')
+                if( assertion === 'a' && error === '' && stage === 'analyzing' )
                 {
-                    result =  "test " + microlang_test_number + ":" + microlang_test_count + " FAILED WITH MICROLANG ERROR";
+                    result =  "test " + microlang_test_number + ":" + microlang_test_count + " an error has NOT been detected when analyzing code";
                 }
 
-                if( assertion === false && error !== '')
+                if( assertion === 'e' && error === '' && stage === 'executing' )
                 {
-                    result =  "test " + microlang_test_number + ":" + microlang_test_count + " FAILED WITH MICROLANG ERROR";
+                    result =  "test " + microlang_test_number + ":" + microlang_test_count + " an error has NOT been detected when executing code";
                 }
 
-                if( assertion === null && error !== '')
+                if( assertion === 'a' && error !== '' && stage === 'analyzing' )
                 {
                     return true;
                 }
+
+                if( assertion === 'e' && error !== '' && stage === 'executing' )
+                {
+                    return true;
+                }
+
+                if( assertion === 'a' && error !== '' && stage === 'executing' )
+                {
+                    result =  "test " + microlang_test_number + ":" + microlang_test_count + " an error has been detected when executing code but should have been detected when analyzing";
+                }
+
+                if( assertion === 'e' && error !== '' && stage === 'analyzing' )
+                {
+                    result =  "test " + microlang_test_number + ":" + microlang_test_count + " an error has been detected when analyzing code but should have been detected when executing";
+                }
+
 
                 input_str  = to_string( input );
                 output_str = to_string( output );

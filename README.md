@@ -80,6 +80,85 @@ $result = $io['c'];
 
 &nbsp;
 
+### Interpreter usage
+
+The interpreter is invoked by calling the function `microlang()`
+
+**Php:**
+
+```<?php
+$error = microlang( $code, &$io, $options );
+```
+
+where `$code` is the variable where the microlang program is stored
+
+`$io` is a key-value pair array that hold the input variables passed to the program and the output variables at the end of execution.
+
+The array can be empty, allowed types for the values passed are `integer`, `float` or `string`.
+
+`$error` is an empty string if no errors occurrs or a description of the error occurred elsewhere.
+
+`$options` parameter is optional and allows defining the interpreter behaviour.
+
+When passed to the function `$options` must be a key-value pair array. If a key is not specified its value fallbacks to default:
+
+```
+$options =
+[
+    'max_str_len'       =>  1048576,
+    'max_iterations'    =>     1000,
+    'action'            => 'execute'
+];
+```
+
+Similarly...
+
+&nbsp;
+
+**JavaScript:**   
+
+```js
+error = microlang( code, io, options );
+```
+
+`io` and `options` (if passed) are objects.
+
+```
+options =
+{
+    'max_str_len':        1048576,
+    'max_iterations':        1000,
+    'action':            'execute'
+};
+```
+
+&nbsp;
+
+**Interpreter options**
+
+`max_str_len` is the maximum length allowed for a string.
+
+`max_iterations` is the maximum number of times control statements alter the execution of the program. Every time `if`, `goto` and `gosub` statements are executed a counter is incremented. If the counter exceeds the maximum number of iterations allowed the program is halted with an error. Setting this limit avoids infinite loops.
+
+The value can be set to zero `0` to allow for an indefinite number of iterations.
+
+&nbsp;
+
+**Static analysis to early detection of errors**
+
+`action` is a string whose value can be `"execute"` (default) or `"analyze"`.
+
+Passing `execute` the code is immediately executed.
+
+Passing `analyze` the interpreter does a static analysis of the code detecting syntax errors, use of undefined variables, value-type errors.
+
+The code is not executed, the returned `error` variable is inspected for a early detect of errors in the code.
+
+The `io` array(**php**) **/** object(**js**) must be passed. The values of the variable passed is not relevant but the type must be the same as when the code will be executed.
+
+
+&nbsp;
+
 ### Language specifications
 
 

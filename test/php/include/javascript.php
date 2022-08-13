@@ -67,7 +67,11 @@ function genarate_javascript()
                 continue;
             }
 
-            if( substr( $line, 0, 10 ) === 'do_assert(')
+            if( $line === 'do_assert( \'a\' );' || $line === 'do_assert( \'e\' );' )
+            {
+                $js .= str_replace( "do_assert", "assert", "    success = $line\n" );
+            }
+            else if( substr( $line, 0, 10 ) === 'do_assert(')
             {
                 $assertion = $line;
 

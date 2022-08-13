@@ -66,7 +66,7 @@ $code.= "ta = typeof( a )\n";
 $code.= "tb = typeof( b )\n";
 $code.= "tc = typeof( c )\n";
 require $execute;
-do_assert();
+do_assert( 'a' );
 require $clean;
 
 
@@ -79,7 +79,7 @@ $code.= "ta = typeof( a )\n";
 $code.= "tb = typeof( b )\n";
 $code.= "tc = typeof( c )\n";
 require $execute;
-do_assert();
+do_assert( 'a' );
 require $clean;
 
 
@@ -96,7 +96,7 @@ $code = "";
 $code.= "int a\n";
 $code.= "b = a\n"; // `b` not defined
 require $execute;
-do_assert();
+do_assert( 'a' );
 require $clean;
 
 
@@ -107,7 +107,7 @@ $code = "";
 $code.= "int a\n";
 $code.= "b = a + 1\n"; // `b` not defined
 require $execute;
-do_assert();
+do_assert( 'a' );
 require $clean;
 
 
@@ -118,7 +118,7 @@ $code = "";
 $code.= "int a\n";
 $code.= "a = b + 1\n"; // `b` not defined
 require $execute;
-do_assert();
+do_assert( 'a' );
 require $clean;
 
 
@@ -129,7 +129,7 @@ $code = "";
 $code.= "int a\n";
 $code.= "a = len( b )\n"; // `b` not defined
 require $execute;
-do_assert();
+do_assert( 'a' );
 require $clean;
 
 
@@ -141,7 +141,7 @@ $code.= "string a\n";
 $code.= "int b\n";
 $code.= "b = len( a )\n"; // `a` defined but not set
 require $execute;
-do_assert();
+do_assert( 'e' );
 require $clean;
 
 
@@ -167,7 +167,7 @@ $input = [ 'a' => 1 ];
 $code = "";
 $code.= "int a\n"; // `a` already defined and set
 require $execute;
-do_assert();
+do_assert( 'a' );
 require $clean;
 
 
@@ -193,7 +193,7 @@ $input = [ 'a' => 12.3 ];
 $code = "";
 $code.= "a = int( a )\n"; // not allowed
 require $execute;
-do_assert();
+do_assert( 'a' );
 require $clean;
 
 
@@ -205,7 +205,7 @@ $code.= "string b";
 $code.= "b = \"foo\"\n";
 $code.= "a = b\n"; // type change not allowed
 require $execute;
-do_assert();
+do_assert( 'a' );
 require $clean;
 
 
@@ -302,7 +302,7 @@ $code.= "\n";
 $code.= "finish:\n";
 $code.= "exit\n";
 require $execute;
-do_assert();
+do_assert( 'e' );
 require $clean;
 
 
@@ -327,7 +327,7 @@ $code.= "\n";
 $code.= "finish:\n";
 $code.= "exit\n";
 require $execute;
-do_assert();
+do_assert( 'e' );
 require $clean;
 
 
@@ -346,7 +346,7 @@ $code.= "\n";
 $code.= "finish:\n";
 $code.= "exit\n";
 require $execute;
-do_assert();
+do_assert( 'e' );
 require $clean;
 
 
@@ -405,7 +405,7 @@ $code = "";
 $code.= "string s\n";
 $code.= "s = trim( 100 )";
 require $execute;
-do_assert();
+do_assert( 'a' );
 require $clean;
 
 
@@ -500,7 +500,7 @@ $code = "";
 $code.= "string s\n";
 $code.= "s = substring( 100, 0, 1 )";
 require $execute;
-do_assert();
+do_assert( 'a' );
 require $clean;
 
 
@@ -511,7 +511,7 @@ $code = "";
 $code.= "string s\n";
 $code.= "s = substring( \"some text\", \"0\", 4 )";
 require $execute;
-do_assert();
+do_assert( 'a' );
 require $clean;
 
 
@@ -522,7 +522,7 @@ $code = "";
 $code.= "string s\n";
 $code.= "s = substring( \"some text\", 0, \"4\" )";
 require $execute;
-do_assert();
+do_assert( 'a' );
 require $clean;
 
 
@@ -533,7 +533,7 @@ $code = "";
 $code.= "int s\n";
 $code.= "s = substring( \"some text\", 5, -2 )";
 require $execute;
-do_assert();
+do_assert( 'a' );
 require $clean;
 
 
@@ -693,7 +693,7 @@ $code = "";
 $code.= "int s\n";
 $code.= "s = between( \"foo   [[bar))   baz\", \"[[\", \"))\" )";
 require $execute;
-do_assert();
+do_assert( 'a' );
 require $clean;
 
 
@@ -704,7 +704,7 @@ $code = "";
 $code.= "string s\n";
 $code.= "s = between( \"foo   11bar))   baz\", 11, \"))\" )";
 require $execute;
-do_assert();
+do_assert( 'a' );
 require $clean;
 
 
@@ -715,7 +715,7 @@ $code = "";
 $code.= "string s\n";
 $code.= "s = between( 10.4E2, \"[[\", \"))\" )";
 require $execute;
-do_assert();
+do_assert( 'a' );
 require $clean;
 
 
@@ -834,7 +834,7 @@ $code = "";
 $code.= "int s\n";
 $code.= "s = between( \"foo   [[bar))   baz\", \"[[\", \"))\", i )";
 require $execute;
-do_assert();
+do_assert( 'a' );
 require $clean;
 
 
@@ -846,7 +846,7 @@ $code.= "string s\n";
 $code.= "int i\n";
 $code.= "s = between( \"foo   11bar))   baz\", 11, \"))\", i )";
 require $execute;
-do_assert();
+do_assert( 'a' );
 require $clean;
 
 
@@ -858,7 +858,7 @@ $code.= "string s\n";
 $code.= "int i\n";
 $code.= "s = between( 10.4E2, \"[[\", \"))\", i )";
 require $execute;
-do_assert();
+do_assert( 'a' );
 require $clean;
 
 
@@ -940,7 +940,7 @@ $code = "";
 $code.= "string i\n";
 $code.= "i = position( \"    foo  \", \"foo\" )";
 require $execute;
-do_assert();
+do_assert( 'a' );
 require $clean;
 
 
@@ -951,7 +951,7 @@ $code = "";
 $code.= "int i\n";
 $code.= "i = position( \"    10  \", 10 )";
 require $execute;
-do_assert();
+do_assert( 'a' );
 require $clean;
 
 
@@ -989,7 +989,7 @@ $code = "";
 $code.= "string i\n";
 $code.= "i = len( \"    foo  \" )";
 require $execute;
-do_assert();
+do_assert( 'a' );
 require $clean;
 
 
@@ -1000,7 +1000,7 @@ $code = "";
 $code.= "int i\n";
 $code.= "i = len( 10 )";
 require $execute;
-do_assert();
+do_assert( 'a' );
 require $clean;
 
 

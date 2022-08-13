@@ -23,13 +23,15 @@ function do_assert( $assertion = null )
     global $output;
     global $code;
     global $error;
+    global $stage;
 
     $trace = debug_backtrace();
     $line = $trace[0]['line'];
 
-    if( $assertion === null )
+    if( $assertion === 'a' || $assertion === 'e' )
     {
-        $assertion_str = 'an error must occurr';
+        if( $assertion === 'a' )     $assertion_str = "an error must occurr when analyzing code";
+        elseif( $assertion === 'e' ) $assertion_str = "an error must occurr when executing code";
     }
     else
     {
@@ -43,32 +45,51 @@ function do_assert( $assertion = null )
         return;
     }
 
-    if( $assertion === false && $error === '')
+    if( $assertion === false && $error === '' )
     {
-        echo "\nTest $microlang_test_number:$microlang_test_count failed: assertion line = $line\n\n";
+        echo "\n\nTest $microlang_test_number:$microlang_test_count failed: assertion line = $line\n\n";
     }
 
-    if( $assertion === null && $error === '')
+    if( ( $assertion === true || $assertion === false ) && $error !== '')
     {
+        echo "\n\nTest $microlang_test_number:$microlang_test_count FAILED WITH ERROR when $stage code: assertion line = $line\n\n";
+    }
+
+    if( $assertion === 'a' && $error === '' && $stage === 'analyzing' )
+    {
+        echo "\n\nTest $microlang_test_number:$microlang_test_count an error has NOT been detected when analyzing code: assertion line = $line\n\n";
         $error = "an error has not occurred";
     }
 
-
-    if( $assertion === true && $error !== '')
+    if( $assertion === 'e' && $error === '' && $stage === 'executing' )
     {
-        echo "\nTest $microlang_test_number:$microlang_test_count FAILED WITH MICROLANG ERROR: assertion line = $line\n\n";
+        echo "\n\nTest $microlang_test_number:$microlang_test_count an error has NOT been detected when executing code: assertion line = $line\n\n";
+        $error = "an error has not occurred";
     }
 
-    if( $assertion === false && $error !== '')
-    {
-        echo "\nTest $microlang_test_number:$microlang_test_count FAILED WITH MICROLANG ERROR: assertion line = $line\n\n";
-    }
-
-    if( $assertion === null && $error !== '')
+    if( $assertion === 'a' && $error !== '' && $stage === 'analyzing' )
     {
         $microlang_test_number++;
         return;
     }
+
+    if( $assertion === 'e' && $error !== '' && $stage === 'executing' )
+    {
+        $microlang_test_number++;
+        return;
+    }
+
+    if( $assertion === 'a' && $error !== '' && $stage === 'executing' )
+    {
+        echo "\n\nTest $microlang_test_number:$microlang_test_count an error has been detected when executing code but should have been detected when analyzing: assertion line = $line\n\n";
+    }
+
+    if( $assertion === 'e' && $error !== '' && $stage === 'analyzing' )
+    {
+        echo "\n\nTest $microlang_test_number:$microlang_test_count an error has been detected when analyzing code but should have been detected when executing: assertion line = $line\n\n";
+    }
+
+
 
     $input_str = "";
     foreach( $input as $k => $v )
@@ -106,7 +127,7 @@ function check_vars( $reserved, $io, $where )
         {
             $trace = debug_backtrace();
             $line = $trace[1]['line'];
-            echo "\nTest-Suite reserved variable name `$k` used into $where: line $line\n";
+            echo "\n\nTest-Suite reserved variable name `$k` used into $where: line $line\n";
             exit;
         }
     }

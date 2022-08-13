@@ -100,7 +100,7 @@ microlang_tests[5] = function()
 
     execute();
 
-    success = assert();
+    success = assert( 'a' );
 
     return success;
 };
@@ -122,7 +122,7 @@ microlang_tests[6] = function()
 
     execute();
 
-    success = assert();
+    success = assert( 'a' );
 
     return success;
 };
@@ -142,7 +142,7 @@ microlang_tests[7] = function()
 
     execute();
 
-    success = assert();
+    success = assert( 'a' );
 
     return success;
 };
@@ -162,7 +162,7 @@ microlang_tests[8] = function()
 
     execute();
 
-    success = assert();
+    success = assert( 'a' );
 
     return success;
 };
@@ -182,7 +182,7 @@ microlang_tests[9] = function()
 
     execute();
 
-    success = assert();
+    success = assert( 'a' );
 
     return success;
 };
@@ -202,7 +202,7 @@ microlang_tests[10] = function()
 
     execute();
 
-    success = assert();
+    success = assert( 'a' );
 
     return success;
 };
@@ -223,7 +223,7 @@ microlang_tests[11] = function()
 
     execute();
 
-    success = assert();
+    success = assert( 'e' );
 
     return success;
 };
@@ -267,7 +267,7 @@ microlang_tests[13] = function()
 
     execute();
 
-    success = assert();
+    success = assert( 'a' );
 
     return success;
 };
@@ -305,7 +305,7 @@ microlang_tests[15] = function()
 
     execute();
 
-    success = assert();
+    success = assert( 'a' );
 
     return success;
 };
@@ -326,7 +326,7 @@ microlang_tests[16] = function()
 
     execute();
 
-    success = assert();
+    success = assert( 'a' );
 
     return success;
 };
@@ -446,7 +446,7 @@ microlang_tests[20] = function()
 
     execute();
 
-    success = assert();
+    success = assert( 'e' );
 
     return success;
 };
@@ -474,7 +474,7 @@ microlang_tests[21] = function()
 
     execute();
 
-    success = assert();
+    success = assert( 'e' );
 
     return success;
 };
@@ -502,7 +502,7 @@ microlang_tests[22] = function()
 
     execute();
 
-    success = assert();
+    success = assert( 'e' );
 
     return success;
 };
@@ -602,7 +602,7 @@ microlang_tests[27] = function()
 
     execute();
 
-    success = assert();
+    success = assert( 'a' );
 
     return success;
 };
@@ -762,7 +762,7 @@ microlang_tests[35] = function()
 
     execute();
 
-    success = assert();
+    success = assert( 'a' );
 
     return success;
 };
@@ -782,7 +782,7 @@ microlang_tests[36] = function()
 
     execute();
 
-    success = assert();
+    success = assert( 'a' );
 
     return success;
 };
@@ -802,7 +802,7 @@ microlang_tests[37] = function()
 
     execute();
 
-    success = assert();
+    success = assert( 'a' );
 
     return success;
 };
@@ -822,7 +822,7 @@ microlang_tests[38] = function()
 
     execute();
 
-    success = assert();
+    success = assert( 'a' );
 
     return success;
 };
@@ -1102,7 +1102,7 @@ microlang_tests[52] = function()
 
     execute();
 
-    success = assert();
+    success = assert( 'a' );
 
     return success;
 };
@@ -1122,7 +1122,7 @@ microlang_tests[53] = function()
 
     execute();
 
-    success = assert();
+    success = assert( 'a' );
 
     return success;
 };
@@ -1142,7 +1142,7 @@ microlang_tests[54] = function()
 
     execute();
 
-    success = assert();
+    success = assert( 'a' );
 
     return success;
 };
@@ -1351,7 +1351,7 @@ microlang_tests[64] = function()
 
     execute();
 
-    success = assert();
+    success = assert( 'a' );
 
     return success;
 };
@@ -1372,7 +1372,7 @@ microlang_tests[65] = function()
 
     execute();
 
-    success = assert();
+    success = assert( 'a' );
 
     return success;
 };
@@ -1393,7 +1393,7 @@ microlang_tests[66] = function()
 
     execute();
 
-    success = assert();
+    success = assert( 'a' );
 
     return success;
 };
@@ -1533,7 +1533,7 @@ microlang_tests[73] = function()
 
     execute();
 
-    success = assert();
+    success = assert( 'a' );
 
     return success;
 };
@@ -1553,7 +1553,7 @@ microlang_tests[74] = function()
 
     execute();
 
-    success = assert();
+    success = assert( 'a' );
 
     return success;
 };
@@ -1613,7 +1613,7 @@ microlang_tests[77] = function()
 
     execute();
 
-    success = assert();
+    success = assert( 'a' );
 
     return success;
 };
@@ -1633,7 +1633,7 @@ microlang_tests[78] = function()
 
     execute();
 
-    success = assert();
+    success = assert( 'a' );
 
     return success;
 };
