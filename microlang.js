@@ -123,7 +123,7 @@ function microlang( code, vars, options )
         }
         else
         {
-            e = n >= 0 ? e = s + n : e = l + n;
+            e = n >= 0 ? s + n : l + n;
         }
         if( e <= s ) return "";
         return x.substring( s, e );
@@ -145,7 +145,7 @@ function microlang( code, vars, options )
         }
         else
         {
-            e = n >= 0 ? e = s + n : e = l + n;
+            e = n >= 0 ? s + n : l + n;
         }
         if( e <= s ) return "";
         return x.substring( s, e );
