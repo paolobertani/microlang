@@ -25,48 +25,998 @@
 // ( INCLUDING NEGLIGENCE OR OTHERWISE ) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
-function microlang( code, vars, options )
+var microlang = ( function()
 {
-    var keywords,
-        execute,
-        max_str_len,
-        max_iterations,
-        labels,
-        label,
-        stack,
-        lines,
-        typs,
-        key,
-        value,
-        ch,
-        sl,
-        i,
-        n,
-        idx,
-        newlines,
-        t,
-        y,
-        y1b,
-        m,
-        k,
-        parts,
-        tokens,
-        p,
-        lines_count,
-        iter,
-        done,
-        tok,
-        tn,
-        t0s,
-        err,
-        error,
-        l,
-        i1,
-        i2,
-        rt,
-        j,
-        tcn,
-        btw;
+    function main( code, vars, options )
+    {
+        var keywords,
+            execute,
+            max_str_len,
+            max_iterations,
+            labels,
+            label,
+            stack,
+            lines,
+            typs,
+            key,
+            value,
+            ch,
+            sl,
+            i,
+            n,
+            idx,
+            newlines,
+            t,
+            y,
+            y1b,
+            m,
+            k,
+            parts,
+            tokens,
+            p,
+            lines_count,
+            iter,
+            done,
+            tok,
+            tn,
+            t0s,
+            err,
+            error,
+            l,
+            i1,
+            i2,
+            rt,
+            j,
+            tcn,
+            btw;
+
+        keywords = [
+            'goto',
+            'gosub',
+            'return',
+            'exit',
+            '=',
+            'substring',
+            'position',
+            'between',
+            'trim',
+            'len',
+            'int',
+            'float',
+            'string',
+            'typeof',
+            '+',
+            '-',
+            '*',
+            '/',
+            '%',
+            'if', 'then', 'else', '==', '!=', '>', '<', '>=', '<=',
+            ',',
+            '(',
+            ')'
+        ];
+
+
+
+        error = { 'msg': '' };
+
+
+
+        if( typeof( options ) === 'undefined' || options === null )
+        {
+            options = {};
+        }
+
+        if( typeof( options ) !== 'object' )
+        {
+            return "optional `options` parameter must be object"
+        }
+
+        max_iterations = typeof( options[ 'max_iterations' ] ) !== 'undefined' ? options[ 'max_iterations' ] : 1000;
+        if( typeof( max_iterations ) !== 'number' ) return "`max_iterations` options must be int";
+
+        max_str_len = typeof( options[ 'max_str_len' ] ) !== 'undefined' ? options[ 'max_str_len' ] : 1048576;
+        if( typeof( max_str_len ) !== 'number' ) return "`max_str_len` options must be int";
+
+        if( typeof( options[ 'action' ] ) !== 'undefined' )
+        {
+            if( options[ 'action' ] === 'execute' ) execute = true;
+            else if( options[ 'action' ] === 'analyze' ) execute = false;
+            else return "`action` option must be either `execute` or `analyze`";
+        }
+        else
+        {
+            execute = true;
+        }
+
+
+        labels = {};
+        stack = [];
+
+        if( typeof( vars ) === 'undefined' )
+        {
+            return "i/o vars object is undefined";
+        }
+
+        if( typeof( vars ) !== 'object' )
+        {
+            return "input data provided is not object";
+        }
+
+
+        // check and store input types
+
+        typs = {};
+
+        for( key in vars )
+        {
+            if( vars.hasOwnProperty( key ) )
+            {
+                value = vars[ key ];
+
+                if( is_int( value ) ) typs[ key ] = 'int';
+                else if( is_string( value ) ) typs[ key ] = 'string';
+                else if( is_float( value ) ) typs[ key ] = 'float';
+                else return "unsupported variable type: " + key;
+            }
+        }
+
+
+        // convert windows linefeeds to unix linefeeds if any
+
+        code = code.split( "\r\n" ).join( "\n" );
+
+
+        // explode code
+
+        lines = code.split( "\n" );
+
+
+        // remove comments
+
+        n = lines.length;
+        for( i = 0; i < n; i++ )
+        {
+            l = lines[ i ];
+            idx = l.indexOf( '//' );
+            if( idx !== -1 )
+            {
+                l = l.substring( 0, idx );
+            }
+            l = l.trim( );
+            lines[ i ] = l;
+        }
+
+
+        // tokenize
+
+        newlines = lines.slice( );
+        lines = [];
+        y = -1;
+        y1b = y + 1;
+        m = newlines.length;
+        for( k = 0; k < m; k++ )
+        {
+            l = newlines[ k ];
+
+            y++;
+            y1b = y + 1;
+
+            parts = microlang_splitline( l, error );
+            if( error[ 'msg' ] !== '' ) return error[ 'msg' ] + y1b;
+
+            tokens = [];
+            n = parts.length;
+            for( i = 0; i < n; i++ )
+            {
+                p = parts[ i ];
+
+
+                // Keywords
+
+                if( keywords.indexOf( p ) !== -1 )
+                {
+                    tokens.push( { 'type': 'keyword', 'symbol': p, 'value': null, 'vtype': null } );
+
+                    if( i < n - 1 && parts[ i + 1 ] === '=' ) return "keywords cannot be used for variable names ( " + p + " ):" + y1b;
+
+                    continue;
+                }
+
+
+                // Labels
+
+                if( p.slice( -1 ) === ":" && i === 0 )
+                {
+                    p = p.substring( 0, p.length - 1 );
+                    if( keywords.indexOf( p ) !== -1 ) return "keywords cannot be used for label names ( " + p + " ):" + y1b;
+                    tokens.push( { 'type': 'label', 'symbol': p, 'value': y, 'vtype': null } );
+                    if( typeof( labels[ p ] ) !== 'undefined' ) return "Label " + p + " duplicate: " + y1b;
+                    labels[ p ] = y;
+                    continue;
+                }
+
+                if( p.slice( -1 ) === ":" && i > 0 )
+                {
+                    return "unexpected label: " + y1b;
+                }
+
+
+                // Strings
+
+                if( p === '""' )
+                {
+                    tokens.push( { 'type': 'value', 'symbol': null, 'value': "", 'vtype': 'string' } );
+                    continue;
+                }
+
+                if( p.substring( 0, 1 ) === '"' )
+                {
+                    if( p.slice( -1 ) === '"' && p.length > 1 )
+                    {
+                        tokens.push( { 'type': 'value', 'symbol': null, 'value': p.substring( 1, p.length - 1 ), 'vtype': 'string' } );
+                        continue;
+                    }
+
+                    value = p.substring( 1, p.length - 1 );
+
+                    if( p.substring( p.length - 1, p.length ) !== '"' ) return "string not closed: " + y1b;
+
+                    tokens.push( { 'type': 'value', 'symbol': null, 'value': value, 'vtype': 'string' } );
+                    continue;
+                }
+
+
+                // Integers
+
+                if( /^-?\d+(e?\d+|E?\d+|(e-)?\d+|(E-)?\d+)?$/.test( p ) )
+                {
+                    if( parseFloat( p ) > 9223372036854775807 || parseFloat( p ) < -9223372036854775808 ) return "overflow: " + y1b;
+
+                    tokens.push( { 'type': 'value', 'symbol': null, 'value': parseInt( parseFloat( p ) ), 'vtype': 'int' } );
+                    continue;
+                }
+
+
+                // Floats
+
+                if( /^-?\d*\.\d+(e?\d+|E?\d+|(e-)?\d+|(E-)?\d+)?$/.test( p ) )
+                {
+                    tokens.push( { 'type': 'value', 'symbol': null, 'value': parseFloat( p ), 'vtype': 'float' } );
+                    continue;
+                }
+
+
+                // Variable names
+
+                tokens.push( { 'type': 'variable', 'symbol': p, 'value': null, 'vtype': null } );
+
+            }
+            lines.push( tokens );
+        }
+
+
+        // execute
+
+        y = 0;
+        lines_count = count( lines );
+        iter = 0;
+        vars[ 'cast_failed' ] = 0;
+
+        while( true )
+        {
+            done = false;
+
+            y1b = y + 1;
+
+            if( iter > max_iterations && max_iterations !== 0 ) return "max iterations exceeded: " + y1b;
+
+            tok = lines[ y ];
+            tn = count( tok );
+
+            if( tn === 0 ) done = true;
+
+            if( tn === 1 && tok[ 0 ][ 'type' ] === 'label' ) done = true;
+
+            tokens = [];
+
+            for( i = 0; i < tn; i++ )
+            {
+                t = tok[ i ];
+
+                if( t[ 'type' ] === 'label' || t[ 'type' ] === 'value' || t[ 'type' ] === 'keyword' )
+                {
+                    tokens.push( t );
+                }
+                else if( t[ 'type' ] === 'variable' )
+                {
+                    if( typeof( typs[ t[ 'symbol' ] ] ) !== 'undefined' && typs[ t[ 'symbol' ] ] !== null )
+                    {
+                        t[ 'value' ] = vars[ t[ 'symbol' ] ];
+                        t[ 'vtype' ] = typs[ t[ 'symbol' ] ];
+                        tokens.push( t );
+                    }
+                    else if( typeof( labels[ t[ 'symbol' ] ] ) !== 'undefined' && labels[ t[ 'symbol' ] ] !== null )
+                    {
+                        t[ 'type' ] = 'label';
+                        t[ 'value' ] = labels[ t[ 'symbol' ] ];
+                        tokens.push( t );
+                    }
+                    else
+                    {
+                        t[ 'value' ] = null;
+                        t[ 'vtype' ] = null;
+                        tokens.push( t );
+                    }
+                }
+            }
+
+
+            t0s = done ? '' : tokens[ 0 ][ 'symbol' ];
+            tcn = done ?  0 : tokens.length;
+
+
+            // Goto
+
+            if( ! done && microlang_parse( tokens, [ 'goto', ':' ] ) )
+            {
+                done = true;
+
+                label = tokens[ 1 ][ 'symbol' ];
+
+                if( typeof( labels[ label ] ) !== 'undefined' && labels[ label ] !== null )
+                {
+                    iter++;
+                    if( execute )
+                    {
+                        y = labels[ label ];
+                        continue;
+                    }
+                }
+                else return "unknown label `" + label + "`: " + y1b;
+            }
+
+
+            // Gosub
+
+            if( ! done && microlang_parse( tokens, [ 'gosub', ':' ] ) )
+            {
+                done = true;
+
+                label = tokens[ 1 ][ 'symbol' ];
+
+                if( typeof( labels[ label ] ) !== 'undefined' && labels[ label ] !== null )
+                {
+                    iter++;
+                    if( execute )
+                    {
+                        stack.push( y );
+                        y = labels[ label ];
+                        continue;
+                    }
+                }
+                else return "unknown label `" + label + "`: " + y1b;
+            }
+
+
+            // Return
+
+            if( ! done && microlang_parse( tokens, [ 'return' ] ) )
+            {
+                done = true;
+
+                if( execute )
+                {
+                    if( stack.length === 0 ) return "return without gosub: " + y1b;
+                    y = stack.pop();
+                    continue;
+                }
+            }
+
+
+            // Exit
+
+            if( ! done && microlang_parse( tokens, [ 'exit' ] ) )
+            {
+                done = true;
+
+                if( execute )
+                {
+                    break;
+                }
+            }
+
+
+            // Exit with error message
+
+            if( ! done && microlang_parse( tokens, [ 'exit', '#' ] ) )
+            {
+                err = microlang_typecheck( execute, tokens, "*" ); if( err !== '' ) return err + y1b;
+
+                if( execute )
+                {
+                    return tokens[ 1 ][ 'value' ] + '';
+                }
+            }
+
+
+            // Int, Float, String declaration with first assignment
+
+            if( ! done && ( microlang_parse( tokens, [ 'int', '@', "=", "#" ] ) || microlang_parse( tokens, [ 'float', '@', "=", "#" ] ) || microlang_parse( tokens, [ 'string', '@', "=", "#" ] ) ) )
+            {
+                err = microlang_typecheck( execute, tokens, "U" + tokens[0]['symbol'].charAt(0).toUpperCase() ); if( err !== '' ) return err + y1b;
+
+                typs[ tokens[ 1 ][ 'symbol' ] ] = tokens[ 0 ][ 'symbol' ];
+                vars[ tokens[ 1 ][ 'symbol' ] ] = tokens[ 3 ][ 'value' ];
+
+                done = true;
+            }
+
+
+            // Int, Float, String declaration
+
+            if( ! done && ( t0s === 'int' || t0s === 'float' || t0s === 'string' ) && tcn >= 2 )
+            {
+                j = 1;
+
+                while( true )
+                {
+                    if( tokens[ j ][ 'type' ] === 'variable' )
+                    {
+                        if( typeof( typs[ tokens[ j ][ 'symbol' ] ] ) !== 'undefined' && typs[ tokens[ j ][ 'symbol' ] ] !== null ) return "variable `" + tokens[ j ][ 'symbol' ] + "` already defined: " + y1b;
+
+                        typs[ tokens[ j ][ 'symbol' ] ] = t0s;
+
+                        vars[ tokens[ j ][ 'symbol' ] ] = null;
+                    }
+                    else
+                    {
+                        return "variable expected: " + y1b;
+                    }
+
+                    if( j >= tcn - 1 ) break;
+
+                    if( j < tcn - 2 )
+                    {
+                        j++;
+                        if( tokens[ j ][ 'symbol' ] !== ',' ) return "`,` expected: " + y1b;
+                        j++;
+                    }
+                }
+
+                done = true;
+            }
+
+
+            // = Assignment
+
+            if( ! done && microlang_parse( tokens, [ '@', '=', '#' ] ) )
+            {
+                if( t0s === 'cast_failed' ) return "`cast_failed` is a reserved variable name: " + y1b;
+
+                err = microlang_typecheck( execute, tokens, "+1" ); if( err !== '' ) return err + y1b;
+
+                if( execute )
+                {
+                    vars[ t0s ] = tokens[ 2 ][ 'value' ];
+                }
+
+                done = true;
+            }
+
+            if( ! done && microlang_parse( tokens, [ 'K', '=', '#' ] ) )
+            {
+                return "keywords cannot be used for variable names ( " + tokens[ 0 ][ 'symbol' ] + " ): " + y1b;
+            }
+
+            if( ! done && microlang_parse( tokens, [ '@', '=', 'K' ] ) )
+            {
+                return "keyword unexpected at right side of assignment ( " + tokens[ 2 ][ 'symbol' ] + " ): " + y1b;
+            }
+
+
+            // Substring
+
+            if( ! done && microlang_parse( tokens, [ '@', '=', 'substring', '(', '#', ',', '#', ',', '#', ')' ] ) )
+            {
+                err = microlang_typecheck( execute, tokens, "sSII" ); if( err !== '' ) return err + y1b;
+
+                if( execute )
+                {
+                    vars[ t0s ] = mb_substr8( tokens[ 4 ][ 'value' ], tokens[ 6 ][ 'value' ], tokens[ 8 ][ 'value' ] );
+                }
+
+                done = true;
+            }
+
+
+            // Position
+
+            if( ! done && microlang_parse( tokens, [ '@', '=', 'position', '(', '#', ',', '#', ')' ] ) )
+            {
+                err = microlang_typecheck( execute, tokens, "iSS" ); if( err !== '' ) return err + y1b;
+
+                if( execute )
+                {
+                    if( tokens[ 4 ][ 'value' ] === '' || tokens[ 6 ][ 'value' ] === '' )
+                    {
+                        vars[ t0s ] = -1;
+                    }
+                    else
+                    {
+                        vars[ t0s ] = mb_strpos( tokens[ 4 ][ 'value' ], tokens[ 6 ][ 'value' ] );
+
+                        if( vars[ t0s ] === false ) vars[ t0s ] = -1;
+                    }
+                }
+
+                done = true;
+            }
+
+
+            // Replace
+
+            if( ! done && microlang_parse( tokens, [ '@', '=', 'replace', '(', '#', ',', '#', ',', '#', ')' ] ) )
+            {
+                err = microlang_typecheck( execute, tokens, "sSSS" ); if( err !== '' ) return err + y1b;
+
+                if( execute )
+                {
+                    vars[ t0s ] = str_replace( tokens[ 6 ][ 'value' ], tokens[ 8 ][ 'value' ], tokens[ 4 ][ 'value' ] );
+                    if( mb_strlen( vars[ t0s ] ) > max_str_len ) return "string too long: y1b";
+                }
+
+                done = true;
+            }
+
+
+            // Between
+
+            if( ! done && microlang_parse( tokens, [ '@', '=', 'between', '(', '#', ',', '#', ',', '#', ')' ] ) )
+            {
+                err = microlang_typecheck( execute, tokens, "sSSS" ); if( err !== '' ) return err + y1b;
+
+                if( execute )
+                {
+                    vars[ t0s ] = microlang_between( tokens[ 4 ][ 'value' ], tokens[ 6 ][ 'value' ], tokens[ 8 ][ 'value' ] );
+                    if( vars[ t0s ] === false ) vars[ t0s ] = "";
+                }
+
+                done = true;
+            }
+
+            if( ! done && microlang_parse( tokens, [ '@', '=', 'between', '(', '#', ',', '#', ',', '#', ',', '@', ')' ] ) )
+            {
+                err = microlang_typecheck( execute, tokens, "sSSSi" ); if( err !== '' ) return err . y1b;
+
+                if( execute )
+                {
+                    vars[ t0s ] = microlang_between( tokens[ 4 ][ 'value' ], tokens[ 6 ][ 'value' ], tokens[ 8 ][ 'value' ] );
+                    if( vars[ t0s ] === false )
+                    {
+                        vars[ t0s ] = "";
+                        vars[ tokens[ 10 ][ 'symbol' ] ] = 0;
+                    }
+                    else
+                    {
+                        vars[ tokens[ 10 ][ 'symbol' ] ] = 1;
+                    }
+                }
+
+                done = true;
+            }
+
+
+            // Trim
+
+            if( ! done && microlang_parse( tokens, [ '@', '=', 'trim', '(', '#', ')' ] ) )
+            {
+                err = microlang_typecheck( execute, tokens, "sS" ); if( err !== '' ) return err + y1b;
+
+                if( execute )
+                {
+                    vars[ t0s ] = microlang_trim( tokens[ 4 ][ 'value' ] );
+                }
+
+                done = true;
+            }
+
+
+            // Len
+
+            if( ! done && microlang_parse( tokens, [ '@', '=', 'len', '(', '#', ')' ] ) )
+            {
+                err = microlang_typecheck( execute, tokens, "iS" ); if( err !== '' ) return err + y1b;
+
+                if( execute )
+                {
+                    vars[ t0s ] = mb_strlen( tokens[ 4 ][ 'value' ] );
+                }
+
+                done = true;
+            }
+
+
+            // Typeof
+
+            if( ! done && microlang_parse( tokens, [ '@', '=', 'typeof', '(', '#', ')' ] ) )
+            {
+                err = microlang_typecheck( execute, tokens, "s+" ); if( err !== '' ) return err + y1b;
+
+                if( execute )
+                {
+                    vars[ t0s ] = tokens[ 4 ][ 'vtype' ];
+                }
+
+                done = true;
+            }
+
+
+            // Int
+
+            if( ! done && microlang_parse( tokens, [ '@', '=', 'int', '(', '#', ')' ] ) )
+            {
+                err = microlang_typecheck( execute, tokens, "i*" ); if( err !== '' ) return err + y1b;
+
+                if( execute )
+                {
+                    if( tokens[ 4 ][ 'vtype' ] === 'string' && /^-?\d+(e?\d+|E?\d+|(e-)?\d+|(E-)?\d+)?$/.test( tokens[ 4 ][ 'value' ] ) === false && /^-?\d*\.\d+(e?\d+|E?\d+|(e-)?\d+|(E-)?\d+)?$/.test( tokens[ 4 ][ 'value' ] ) === false )
+                    {
+                        vars[ t0s ] = 0;
+                        vars[ 'cast_failed' ] = 1;
+                    }
+                    else
+                    {
+                        if( parseFloat( tokens[ 4 ][ 'value' ] ) > 9223372036854775807 || parseFloat( tokens[ 4 ][ 'value' ] ) < -9223372036854775808 )
+                        {
+                            vars[ t0s ] = 0;
+                            vars[ 'cast_failed' ] = 1;
+                        }
+                        else
+                        {
+                            vars[ t0s ] = parseInt( tokens[ 4 ][ 'value' ] );
+                            vars[ 'cast_failed' ] = 0;
+                        }
+                    }
+                }
+
+                done = true;
+            }
+
+
+            // Float
+
+            if( ! done && microlang_parse( tokens, [ '@', '=', 'float', '(', '#', ')' ] ) )
+            {
+                err = microlang_typecheck( execute, tokens, "n*" ); if( err !== '' ) return err + y1b;
+
+                if( execute )
+                {
+                    if( tokens[ 4 ][ 'vtype' ] === 'string' && /^-?\d+(e?\d+|E?\d+|(e-)?\d+|(E-)?\d+)?$/.test( tokens[ 4 ][ 'value' ] ) === false && /^-?\d*\.\d+(e?\d+|E?\d+|(e-)?\d+|(E-)?\d+)?$/.test( tokens[ 4 ][ 'value' ] ) === false )
+                    {
+                        vars[ t0s ] = parseFloat( 0 );
+                        vars[ 'cast_failed' ] = 1;
+                    }
+                    else
+                    {
+                        vars[ t0s ] = parseFloat( tokens[ 4 ][ 'value' ] );
+                        vars[ 'cast_failed' ] = 0;
+                        typs[ t0s ] = 'float';
+                    }
+                }
+
+                done = true;
+            }
+
+
+            // String
+
+            if( ! done && microlang_parse( tokens, [ '@', '=', 'string', '(', '#', ')' ] ) )
+            {
+                err = microlang_typecheck( execute, tokens, "s*" ); if( err !== '' ) return err + y1b;
+
+                if( execute )
+                {
+                    vars[ t0s ] = '' + tokens[ 4 ][ 'value' ];
+                }
+
+                done = true;
+            }
+
+
+            // + Sum
+
+            if( ! done && microlang_parse( tokens, [ '@', '=', '#', '+', '#' ] ) )
+            {
+                err = microlang_typecheck( execute, tokens, "+12" ); if( err !== '' ) return err + y1b;
+
+                if( execute )
+                {
+                    if( tokens[ 2 ][ 'vtype' ] === 'string' )
+                    {
+                        vars[ t0s ] = tokens[ 2 ][ 'value' ] + tokens[ 4 ][ 'value' ];
+
+                        if( mb_strlen( vars[ t0s ] ) > max_str_len  ) return "string too long: " + y1b;
+                    }
+                    else if( tokens[ 2 ][ 'vtype' ] === 'int' )
+                    {
+                        vars[ t0s ] = tokens[ 2 ][ 'value' ] + tokens[ 4 ][ 'value' ];
+
+                        if( vars[ t0s ] > 9223372036854775807 || vars[ t0s ] < -9223372036854775808 ) return "overflow: " + y1b;
+                    }
+                    else if( tokens[ 2 ][ 'vtype' ] === 'float' )
+                    {
+                        vars[ t0s ] = tokens[ 2 ][ 'value' ] + tokens[ 4 ][ 'value' ];
+                    }
+                }
+
+                done = true;
+            }
+
+
+            // - Diff
+
+            if( ! done && microlang_parse( tokens, [ '@', '=', '#', '-', '#' ] ) )
+            {
+                err = microlang_typecheck( execute, tokens, "n12" ); if( err !== '' ) return err + y1b;
+
+                if( execute )
+                {
+                    if( tokens[ 2 ][ 'vtype' ] === 'int' )
+                    {
+                        vars[ t0s ] = tokens[ 2 ][ 'value' ] - tokens[ 4 ][ 'value' ];
+
+                        if( vars[ t0s ] > 9223372036854775807 || vars[ t0s ] < -9223372036854775808 ) return "overflow: " + y1b;
+                    }
+                    else if( tokens[ 5 ][ 'vtype' ] === 'float' )
+                    {
+                        vars[ t0s ] = tokens[ 2 ][ 'value' ] - tokens[ 4 ][ 'value' ];
+                    }
+                }
+
+                done = true;
+            }
+
+
+            // * Mult
+
+            if( ! done && microlang_parse( tokens, [ '@', '=', '#', '*', '#' ] ) )
+            {
+                err = microlang_typecheck( execute, tokens, "n12" ); if( err !== '' ) return err + y1b;
+
+                if( execute )
+                {
+                    if( tokens[ 2 ][ 'vtype' ] === 'int' )
+                    {
+                        vars[ t0s ] = tokens[ 2 ][ 'value' ] * tokens[ 4 ][ 'value' ];
+
+                        if( vars[ t0s ] > 9223372036854775807 || vars[ t0s ] < -9223372036854775808 ) return "overflow: " + y1b;
+                    }
+                    else if( tokens[ 2 ][ 'vtype' ] === 'float' )
+                    {
+                        vars[ t0s ] = tokens[ 2 ][ 'value' ] * tokens[ 4 ][ 'value' ];
+                    }
+                }
+
+                done = true;
+            }
+
+
+            // / Div
+
+            if( ! done && microlang_parse( tokens, [ '@', '=', '#', '/', '#' ] ) )
+            {
+                err = microlang_typecheck( execute, tokens, "n12" ); if( err !== '' ) return err + y1b;
+
+                if( execute )
+                {
+                    if( tokens[ 4 ][ 'value' ] === 0 ) return "division by zero: " + y1b;
+                    if( tokens[ 2 ][ 'vtype' ] === 'int' )
+                    {
+                        vars[ t0s ] = Math.floor( tokens[ 2 ][ 'value' ] / tokens[ 4 ][ 'value' ] );
+
+                        if( vars[ t0s ] > 9223372036854775807 || vars[ t0s ] < -9223372036854775808 ) return "overflow: " + y1b;
+
+                        vars[ t0s ] = parseInt( vars[ t0s ] );
+                    }
+                    else if( tokens[ 2 ][ 'vtype' ] === 'float' )
+                    {
+                        vars[ t0s ] = tokens[ 2 ][ 'value' ] / tokens[ 4 ][ 'value' ];
+                    }
+                }
+
+                done = true;
+            }
+
+
+            // % Modulo
+
+            if( ! done && microlang_parse( tokens, [ '@', '=', '#', '%', '#' ] ) )
+            {
+                err = microlang_typecheck( execute, tokens, "iII"  ); if( err !== '' ) return err + y1b;
+
+                if( execute )
+                {
+                    if( tokens[ 4 ][ 'value' ] === 0 ) return "division by zero: " + y1b;
+                    vars[ t0s ] = tokens[ 2 ][ 'value' ] % tokens[ 4 ][ 'value' ];
+                }
+
+                done = true;
+            }
+
+
+            // If Then [ Else ]
+
+            if( ! done && ( microlang_parse( tokens, [ 'if', '#', '~', '#', 'then', ':' ] ) || microlang_parse( tokens, [ 'if', '#', '~', '#', 'then', ':', 'else', ':' ] ) ) )
+            {
+                err = microlang_typecheck( execute, tokens, "*1" ); if( err !== '' ) return err + y1b;
+
+                if( tokens[ 5 ][ 'value' ] === null ) return "undefined label `" + tokens[ 5 ][ 'symbol' ] + "`: " + y1b;
+                if( tn === 8 && tokens[ 7 ][ 'value' ] === null ) return "undefined label `" + tokens[ 7 ][ 'value' ] + "`: " + y1b;
+
+                if( execute )
+                {
+                    if( tokens[ 2 ][ 'symbol' ] === '==' )
+                    {
+                        if( tokens[ 1 ][ 'value' ] == tokens[ 3 ][ 'value' ] )
+                        {
+                            y = tokens[ 5 ][ 'value' ];
+                            iter++;
+                            continue;
+                        }
+                        else
+                        {
+                            if( tn === 8 && tokens[ 7 ][ 'value' ] !== null )
+                            {
+                                y = tokens[ 7 ][ 'value' ];
+                                iter++;
+                                continue;
+                            }
+                            else
+                            {
+                                done = true;
+                            }
+                        }
+                    }
+
+                    if( tokens[ 2 ][ 'symbol' ] === '!=' )
+                    {
+                        if( tokens[ 1 ][ 'value' ] != tokens[ 3 ][ 'value' ] )
+                        {
+                            y = tokens[ 5 ][ 'value' ];
+                            iter++;
+                            continue;
+                        }
+                        else
+                        {
+                            if( tn === 8 && tokens[ 7 ][ 'value' ] !== null )
+                            {
+                                y = tokens[ 7 ][ 'value' ];
+                                iter++;
+                                continue;
+                            }
+                            else
+                            {
+                                done = true;
+                            }
+                        }
+                    }
+
+                    if( tokens[ 2 ][ 'symbol' ] === '>' )
+                    {
+                        if( tokens[ 1 ][ 'value' ] > tokens[ 3 ][ 'value' ] )
+                        {
+                            y = tokens[ 5 ][ 'value' ];
+                            iter++;
+                            continue;
+                        }
+                        else
+                        {
+                            if( tn === 8 && tokens[ 7 ][ 'value' ] !== null )
+                            {
+                                y = tokens[ 7 ][ 'value' ];
+                                iter++;
+                                continue;
+                            }
+                            else
+                            {
+                                done = true;
+                            }
+                        }
+                    }
+
+                    if( tokens[ 2 ][ 'symbol' ] === '<' )
+                    {
+                        if( tokens[ 1 ][ 'value' ] < tokens[ 3 ][ 'value' ] )
+                        {
+                            y = tokens[ 5 ][ 'value' ];
+                            iter++;
+                            continue;
+                        }
+                        else
+                        {
+                            if( tn === 8 && tokens[ 7 ][ 'value' ] !== null )
+                            {
+                                y = tokens[ 7 ][ 'value' ];
+                                iter++;
+                                continue;
+                            }
+                            else
+                            {
+                                done = true;
+                            }
+                        }
+                    }
+
+                    if( tokens[ 2 ][ 'symbol' ] === '<=' )
+                    {
+                        if( tokens[ 1 ][ 'value' ] <= tokens[ 3 ][ 'value' ] )
+                        {
+                            y = tokens[ 5 ][ 'value' ];
+                            iter++;
+                            continue;
+                        }
+                        else
+                        {
+                            if( tn === 8 && tokens[ 7 ][ 'value' ] !== null )
+                            {
+                                y = tokens[ 7 ][ 'value' ];
+                                iter++;
+                                continue;
+                            }
+                            else
+                            {
+                                done = true;
+                            }
+                        }
+                    }
+
+                    if( tokens[ 2 ][ 'symbol' ] === '>=' )
+                    {
+                        if( tokens[ 1 ][ 'value' ] >= tokens[ 3 ][ 'value' ] )
+                        {
+                            y = tokens[ 5 ][ 'value' ];
+                            iter++;
+                            continue;
+                        }
+                        else
+                        {
+                            if( tn === 8 && tokens[ 7 ][ 'value' ] !== null )
+                            {
+                                y = tokens[ 7 ][ 'value' ];
+                                iter++;
+                                continue;
+                            }
+                            else
+                            {
+                                done = true;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    done = true;
+                }
+            }
+
+            if( ! done )
+            {
+                return "syntax error: " + y1b;
+            }
+
+            y++;
+
+            if( y >= lines_count )
+            {
+                break;
+            }
+        }
+
+        delete vars[ 'cast_failed' ];
+
+        return "";
+    }
 
 
 
@@ -859,954 +1809,12 @@ function microlang( code, vars, options )
 
 
 
-    // Begin
+    // --------------------
 
 
 
-    keywords = [
-        'goto',
-        'gosub',
-        'return',
-        'exit',
-        '=',
-        'substring',
-        'position',
-        'between',
-        'trim',
-        'len',
-        'int',
-        'float',
-        'string',
-        'typeof',
-        '+',
-        '-',
-        '*',
-        '/',
-        '%',
-        'if', 'then', 'else', '==', '!=', '>', '<', '>=', '<=',
-        ',',
-        '(',
-        ')'
-    ];
+    return main;
 
 
 
-    error = { 'msg': '' };
-
-
-
-    if( typeof( options ) === 'undefined' || options === null )
-    {
-        options = {};
-    }
-
-    if( typeof( options ) !== 'object' )
-    {
-        return "optional `options` parameter must be object"
-    }
-
-    max_iterations = typeof( options[ 'max_iterations' ] ) !== 'undefined' ? options[ 'max_iterations' ] : 1000;
-    if( typeof( max_iterations ) !== 'number' ) return "`max_iterations` options must be int";
-
-    max_str_len = typeof( options[ 'max_str_len' ] ) !== 'undefined' ? options[ 'max_str_len' ] : 1048576;
-    if( typeof( max_str_len ) !== 'number' ) return "`max_str_len` options must be int";
-
-    if( typeof( options[ 'action' ] ) !== 'undefined' )
-    {
-        if( options[ 'action' ] === 'execute' ) execute = true;
-        else if( options[ 'action' ] === 'analyze' ) execute = false;
-        else return "`action` option must be either `execute` or `analyze`";
-    }
-    else
-    {
-        execute = true;
-    }
-
-
-    labels = {};
-    stack = [];
-
-    if( typeof( vars ) === 'undefined' )
-    {
-        return "i/o vars object is undefined";
-    }
-
-    if( typeof( vars ) !== 'object' )
-    {
-        return "input data provided is not object";
-    }
-
-
-    // check and store input types
-
-    typs = {};
-
-    for( key in vars )
-    {
-        if( vars.hasOwnProperty( key ) )
-        {
-            value = vars[ key ];
-
-            if( is_int( value ) ) typs[ key ] = 'int';
-            else if( is_string( value ) ) typs[ key ] = 'string';
-            else if( is_float( value ) ) typs[ key ] = 'float';
-            else return "unsupported variable type: " + key;
-        }
-    }
-
-
-    // convert windows linefeeds to unix linefeeds if any
-
-    code = code.split( "\r\n" ).join( "\n" );
-
-
-    // explode code
-
-    lines = code.split( "\n" );
-
-
-    // remove comments
-
-    n = lines.length;
-    for( i = 0; i < n; i++ )
-    {
-        l = lines[ i ];
-        idx = l.indexOf( '//' );
-        if( idx !== -1 )
-        {
-            l = l.substring( 0, idx );
-        }
-        l = l.trim( );
-        lines[ i ] = l;
-    }
-
-
-    // tokenize
-
-    newlines = lines.slice( );
-    lines = [];
-    y = -1;
-    y1b = y + 1;
-    m = newlines.length;
-    for( k = 0; k < m; k++ )
-    {
-        l = newlines[ k ];
-
-        y++;
-        y1b = y + 1;
-
-        parts = microlang_splitline( l, error );
-        if( error[ 'msg' ] !== '' ) return error[ 'msg' ] + y1b;
-
-        tokens = [];
-        n = parts.length;
-        for( i = 0; i < n; i++ )
-        {
-            p = parts[ i ];
-
-
-            // Keywords
-
-            if( keywords.indexOf( p ) !== -1 )
-            {
-                tokens.push( { 'type': 'keyword', 'symbol': p, 'value': null, 'vtype': null } );
-
-                if( i < n - 1 && parts[ i + 1 ] === '=' ) return "keywords cannot be used for variable names ( " + p + " ):" + y1b;
-
-                continue;
-            }
-
-
-            // Labels
-
-            if( p.slice( -1 ) === ":" && i === 0 )
-            {
-                p = p.substring( 0, p.length - 1 );
-                if( keywords.indexOf( p ) !== -1 ) return "keywords cannot be used for label names ( " + p + " ):" + y1b;
-                tokens.push( { 'type': 'label', 'symbol': p, 'value': y, 'vtype': null } );
-                if( typeof( labels[ p ] ) !== 'undefined' ) return "Label " + p + " duplicate: " + y1b;
-                labels[ p ] = y;
-                continue;
-            }
-
-            if( p.slice( -1 ) === ":" && i > 0 )
-            {
-                return "unexpected label: " + y1b;
-            }
-
-
-            // Strings
-
-            if( p === '""' )
-            {
-                tokens.push( { 'type': 'value', 'symbol': null, 'value': "", 'vtype': 'string' } );
-                continue;
-            }
-
-            if( p.substring( 0, 1 ) === '"' )
-            {
-                if( p.slice( -1 ) === '"' && p.length > 1 )
-                {
-                    tokens.push( { 'type': 'value', 'symbol': null, 'value': p.substring( 1, p.length - 1 ), 'vtype': 'string' } );
-                    continue;
-                }
-
-                value = p.substring( 1, p.length - 1 );
-
-                if( p.substring( p.length - 1, p.length ) !== '"' ) return "string not closed: " + y1b;
-
-                tokens.push( { 'type': 'value', 'symbol': null, 'value': value, 'vtype': 'string' } );
-                continue;
-            }
-
-
-            // Integers
-
-            if( /^-?\d+(e?\d+|E?\d+|(e-)?\d+|(E-)?\d+)?$/.test( p ) )
-            {
-                if( parseFloat( p ) > 9223372036854775807 || parseFloat( p ) < -9223372036854775808 ) return "overflow: " + y1b;
-
-                tokens.push( { 'type': 'value', 'symbol': null, 'value': parseInt( parseFloat( p ) ), 'vtype': 'int' } );
-                continue;
-            }
-
-
-            // Floats
-
-            if( /^-?\d*\.\d+(e?\d+|E?\d+|(e-)?\d+|(E-)?\d+)?$/.test( p ) )
-            {
-                tokens.push( { 'type': 'value', 'symbol': null, 'value': parseFloat( p ), 'vtype': 'float' } );
-                continue;
-            }
-
-
-            // Variable names
-
-            tokens.push( { 'type': 'variable', 'symbol': p, 'value': null, 'vtype': null } );
-
-        }
-        lines.push( tokens );
-    }
-
-
-    // execute
-
-    y = 0;
-    lines_count = count( lines );
-    iter = 0;
-    vars[ 'cast_failed' ] = 0;
-
-    while( true )
-    {
-        done = false;
-
-        y1b = y + 1;
-
-        if( iter > max_iterations && max_iterations !== 0 ) return "max iterations exceeded: " + y1b;
-
-        tok = lines[ y ];
-        tn = count( tok );
-
-        if( tn === 0 ) done = true;
-
-        if( tn === 1 && tok[ 0 ][ 'type' ] === 'label' ) done = true;
-
-        tokens = [];
-
-        for( i = 0; i < tn; i++ )
-        {
-            t = tok[ i ];
-
-            if( t[ 'type' ] === 'label' || t[ 'type' ] === 'value' || t[ 'type' ] === 'keyword' )
-            {
-                tokens.push( t );
-            }
-            else if( t[ 'type' ] === 'variable' )
-            {
-                if( typeof( typs[ t[ 'symbol' ] ] ) !== 'undefined' && typs[ t[ 'symbol' ] ] !== null )
-                {
-                    t[ 'value' ] = vars[ t[ 'symbol' ] ];
-                    t[ 'vtype' ] = typs[ t[ 'symbol' ] ];
-                    tokens.push( t );
-                }
-                else if( typeof( labels[ t[ 'symbol' ] ] ) !== 'undefined' && labels[ t[ 'symbol' ] ] !== null )
-                {
-                    t[ 'type' ] = 'label';
-                    t[ 'value' ] = labels[ t[ 'symbol' ] ];
-                    tokens.push( t );
-                }
-                else
-                {
-                    t[ 'value' ] = null;
-                    t[ 'vtype' ] = null;
-                    tokens.push( t );
-                }
-            }
-        }
-
-
-        t0s = done ? '' : tokens[ 0 ][ 'symbol' ];
-        tcn = done ?  0 : tokens.length;
-
-
-        // Goto
-
-        if( ! done && microlang_parse( tokens, [ 'goto', ':' ] ) )
-        {
-            done = true;
-
-            label = tokens[ 1 ][ 'symbol' ];
-
-            if( typeof( labels[ label ] ) !== 'undefined' && labels[ label ] !== null )
-            {
-                iter++;
-                if( execute )
-                {
-                    y = labels[ label ];
-                    continue;
-                }
-            }
-            else return "unknown label `" + label + "`: " + y1b;
-        }
-
-
-        // Gosub
-
-        if( ! done && microlang_parse( tokens, [ 'gosub', ':' ] ) )
-        {
-            done = true;
-
-            label = tokens[ 1 ][ 'symbol' ];
-
-            if( typeof( labels[ label ] ) !== 'undefined' && labels[ label ] !== null )
-            {
-                iter++;
-                if( execute )
-                {
-                    stack.push( y );
-                    y = labels[ label ];
-                    continue;
-                }
-            }
-            else return "unknown label `" + label + "`: " + y1b;
-        }
-
-
-        // Return
-
-        if( ! done && microlang_parse( tokens, [ 'return' ] ) )
-        {
-            done = true;
-
-            if( execute )
-            {
-                if( stack.length === 0 ) return "return without gosub: " + y1b;
-                y = stack.pop();
-                continue;
-            }
-        }
-
-
-        // Exit
-
-        if( ! done && microlang_parse( tokens, [ 'exit' ] ) )
-        {
-            done = true;
-
-            if( execute )
-            {
-                break;
-            }
-        }
-
-
-        // Exit with error message
-
-        if( ! done && microlang_parse( tokens, [ 'exit', '#' ] ) )
-        {
-            err = microlang_typecheck( execute, tokens, "*" ); if( err !== '' ) return err + y1b;
-
-            if( execute )
-            {
-                return tokens[ 1 ][ 'value' ] + '';
-            }
-        }
-
-
-        // Int, Float, String declaration with first assignment
-
-        if( ! done && ( microlang_parse( tokens, [ 'int', '@', "=", "#" ] ) || microlang_parse( tokens, [ 'float', '@', "=", "#" ] ) || microlang_parse( tokens, [ 'string', '@', "=", "#" ] ) ) )
-        {
-            err = microlang_typecheck( execute, tokens, "U" + tokens[0]['symbol'].charAt(0).toUpperCase() ); if( err !== '' ) return err + y1b;
-
-            typs[ tokens[ 1 ][ 'symbol' ] ] = tokens[ 0 ][ 'symbol' ];
-            vars[ tokens[ 1 ][ 'symbol' ] ] = tokens[ 3 ][ 'value' ];
-
-            done = true;
-        }
-
-
-        // Int, Float, String declaration
-
-        if( ! done && ( t0s === 'int' || t0s === 'float' || t0s === 'string' ) && tcn >= 2 )
-        {
-            j = 1;
-
-            while( true )
-            {
-                if( tokens[ j ][ 'type' ] === 'variable' )
-                {
-                    if( typeof( typs[ tokens[ j ][ 'symbol' ] ] ) !== 'undefined' && typs[ tokens[ j ][ 'symbol' ] ] !== null ) return "variable `" + tokens[ j ][ 'symbol' ] + "` already defined: " + y1b;
-
-                    typs[ tokens[ j ][ 'symbol' ] ] = t0s;
-
-                    vars[ tokens[ j ][ 'symbol' ] ] = null;
-                }
-                else
-                {
-                    return "variable expected: " + y1b;
-                }
-
-                if( j >= tcn - 1 ) break;
-
-                if( j < tcn - 2 )
-                {
-                    j++;
-                    if( tokens[ j ][ 'symbol' ] !== ',' ) return "`,` expected: " + y1b;
-                    j++;
-                }
-            }
-
-            done = true;
-        }
-
-
-        // = Assignment
-
-        if( ! done && microlang_parse( tokens, [ '@', '=', '#' ] ) )
-        {
-            if( t0s === 'cast_failed' ) return "`cast_failed` is a reserved variable name: " + y1b;
-
-            err = microlang_typecheck( execute, tokens, "+1" ); if( err !== '' ) return err + y1b;
-
-            if( execute )
-            {
-                vars[ t0s ] = tokens[ 2 ][ 'value' ];
-            }
-
-            done = true;
-        }
-
-        if( ! done && microlang_parse( tokens, [ 'K', '=', '#' ] ) )
-        {
-            return "keywords cannot be used for variable names ( " + tokens[ 0 ][ 'symbol' ] + " ): " + y1b;
-        }
-
-        if( ! done && microlang_parse( tokens, [ '@', '=', 'K' ] ) )
-        {
-            return "keyword unexpected at right side of assignment ( " + tokens[ 2 ][ 'symbol' ] + " ): " + y1b;
-        }
-
-
-        // Substring
-
-        if( ! done && microlang_parse( tokens, [ '@', '=', 'substring', '(', '#', ',', '#', ',', '#', ')' ] ) )
-        {
-            err = microlang_typecheck( execute, tokens, "sSII" ); if( err !== '' ) return err + y1b;
-
-            if( execute )
-            {
-                vars[ t0s ] = mb_substr8( tokens[ 4 ][ 'value' ], tokens[ 6 ][ 'value' ], tokens[ 8 ][ 'value' ] );
-            }
-
-            done = true;
-        }
-
-
-        // Position
-
-        if( ! done && microlang_parse( tokens, [ '@', '=', 'position', '(', '#', ',', '#', ')' ] ) )
-        {
-            err = microlang_typecheck( execute, tokens, "iSS" ); if( err !== '' ) return err + y1b;
-
-            if( execute )
-            {
-                if( tokens[ 4 ][ 'value' ] === '' || tokens[ 6 ][ 'value' ] === '' )
-                {
-                    vars[ t0s ] = -1;
-                }
-                else
-                {
-                    vars[ t0s ] = mb_strpos( tokens[ 4 ][ 'value' ], tokens[ 6 ][ 'value' ] );
-
-                    if( vars[ t0s ] === false ) vars[ t0s ] = -1;
-                }
-            }
-
-            done = true;
-        }
-
-
-        // Replace
-
-        if( ! done && microlang_parse( tokens, [ '@', '=', 'replace', '(', '#', ',', '#', ',', '#', ')' ] ) )
-        {
-            err = microlang_typecheck( execute, tokens, "sSSS" ); if( err !== '' ) return err + y1b;
-
-            if( execute )
-            {
-                vars[ t0s ] = str_replace( tokens[ 6 ][ 'value' ], tokens[ 8 ][ 'value' ], tokens[ 4 ][ 'value' ] );
-                if( mb_strlen( vars[ t0s ] ) > max_str_len ) return "string too long: y1b";
-            }
-
-            done = true;
-        }
-
-
-        // Between
-
-        if( ! done && microlang_parse( tokens, [ '@', '=', 'between', '(', '#', ',', '#', ',', '#', ')' ] ) )
-        {
-            err = microlang_typecheck( execute, tokens, "sSSS" ); if( err !== '' ) return err + y1b;
-
-            if( execute )
-            {
-                vars[ t0s ] = microlang_between( tokens[ 4 ][ 'value' ], tokens[ 6 ][ 'value' ], tokens[ 8 ][ 'value' ] );
-                if( vars[ t0s ] === false ) vars[ t0s ] = "";
-            }
-
-            done = true;
-        }
-
-        if( ! done && microlang_parse( tokens, [ '@', '=', 'between', '(', '#', ',', '#', ',', '#', ',', '@', ')' ] ) )
-        {
-            err = microlang_typecheck( execute, tokens, "sSSSi" ); if( err !== '' ) return err . y1b;
-
-            if( execute )
-            {
-                vars[ t0s ] = microlang_between( tokens[ 4 ][ 'value' ], tokens[ 6 ][ 'value' ], tokens[ 8 ][ 'value' ] );
-                if( vars[ t0s ] === false )
-                {
-                    vars[ t0s ] = "";
-                    vars[ tokens[ 10 ][ 'symbol' ] ] = 0;
-                }
-                else
-                {
-                    vars[ tokens[ 10 ][ 'symbol' ] ] = 1;
-                }
-            }
-
-            done = true;
-        }
-
-
-        // Trim
-
-        if( ! done && microlang_parse( tokens, [ '@', '=', 'trim', '(', '#', ')' ] ) )
-        {
-            err = microlang_typecheck( execute, tokens, "sS" ); if( err !== '' ) return err + y1b;
-
-            if( execute )
-            {
-                vars[ t0s ] = microlang_trim( tokens[ 4 ][ 'value' ] );
-            }
-
-            done = true;
-        }
-
-
-        // Len
-
-        if( ! done && microlang_parse( tokens, [ '@', '=', 'len', '(', '#', ')' ] ) )
-        {
-            err = microlang_typecheck( execute, tokens, "iS" ); if( err !== '' ) return err + y1b;
-
-            if( execute )
-            {
-                vars[ t0s ] = mb_strlen( tokens[ 4 ][ 'value' ] );
-            }
-
-            done = true;
-        }
-
-
-        // Typeof
-
-        if( ! done && microlang_parse( tokens, [ '@', '=', 'typeof', '(', '#', ')' ] ) )
-        {
-            err = microlang_typecheck( execute, tokens, "s+" ); if( err !== '' ) return err + y1b;
-
-            if( execute )
-            {
-                vars[ t0s ] = tokens[ 4 ][ 'vtype' ];
-            }
-
-            done = true;
-        }
-
-
-        // Int
-
-        if( ! done && microlang_parse( tokens, [ '@', '=', 'int', '(', '#', ')' ] ) )
-        {
-            err = microlang_typecheck( execute, tokens, "i*" ); if( err !== '' ) return err + y1b;
-
-            if( execute )
-            {
-                if( tokens[ 4 ][ 'vtype' ] === 'string' && /^-?\d+(e?\d+|E?\d+|(e-)?\d+|(E-)?\d+)?$/.test( tokens[ 4 ][ 'value' ] ) === false && /^-?\d*\.\d+(e?\d+|E?\d+|(e-)?\d+|(E-)?\d+)?$/.test( tokens[ 4 ][ 'value' ] ) === false )
-                {
-                    vars[ t0s ] = 0;
-                    vars[ 'cast_failed' ] = 1;
-                }
-                else
-                {
-                    if( parseFloat( tokens[ 4 ][ 'value' ] ) > 9223372036854775807 || parseFloat( tokens[ 4 ][ 'value' ] ) < -9223372036854775808 )
-                    {
-                        vars[ t0s ] = 0;
-                        vars[ 'cast_failed' ] = 1;
-                    }
-                    else
-                    {
-                        vars[ t0s ] = parseInt( tokens[ 4 ][ 'value' ] );
-                        vars[ 'cast_failed' ] = 0;
-                    }
-                }
-            }
-
-            done = true;
-        }
-
-
-        // Float
-
-        if( ! done && microlang_parse( tokens, [ '@', '=', 'float', '(', '#', ')' ] ) )
-        {
-            err = microlang_typecheck( execute, tokens, "n*" ); if( err !== '' ) return err + y1b;
-
-            if( execute )
-            {
-                if( tokens[ 4 ][ 'vtype' ] === 'string' && /^-?\d+(e?\d+|E?\d+|(e-)?\d+|(E-)?\d+)?$/.test( tokens[ 4 ][ 'value' ] ) === false && /^-?\d*\.\d+(e?\d+|E?\d+|(e-)?\d+|(E-)?\d+)?$/.test( tokens[ 4 ][ 'value' ] ) === false )
-                {
-                    vars[ t0s ] = parseFloat( 0 );
-                    vars[ 'cast_failed' ] = 1;
-                }
-                else
-                {
-                    vars[ t0s ] = parseFloat( tokens[ 4 ][ 'value' ] );
-                    vars[ 'cast_failed' ] = 0;
-                    typs[ t0s ] = 'float';
-                }
-            }
-
-            done = true;
-        }
-
-
-        // String
-
-        if( ! done && microlang_parse( tokens, [ '@', '=', 'string', '(', '#', ')' ] ) )
-        {
-            err = microlang_typecheck( execute, tokens, "s*" ); if( err !== '' ) return err + y1b;
-
-            if( execute )
-            {
-                vars[ t0s ] = '' + tokens[ 4 ][ 'value' ];
-            }
-
-            done = true;
-        }
-
-
-        // + Sum
-
-        if( ! done && microlang_parse( tokens, [ '@', '=', '#', '+', '#' ] ) )
-        {
-            err = microlang_typecheck( execute, tokens, "+12" ); if( err !== '' ) return err + y1b;
-
-            if( execute )
-            {
-                if( tokens[ 2 ][ 'vtype' ] === 'string' )
-                {
-                    vars[ t0s ] = tokens[ 2 ][ 'value' ] + tokens[ 4 ][ 'value' ];
-
-                    if( mb_strlen( vars[ t0s ] ) > max_str_len  ) return "string too long: " + y1b;
-                }
-                else if( tokens[ 2 ][ 'vtype' ] === 'int' )
-                {
-                    vars[ t0s ] = tokens[ 2 ][ 'value' ] + tokens[ 4 ][ 'value' ];
-
-                    if( vars[ t0s ] > 9223372036854775807 || vars[ t0s ] < -9223372036854775808 ) return "overflow: " + y1b;
-                }
-                else if( tokens[ 2 ][ 'vtype' ] === 'float' )
-                {
-                    vars[ t0s ] = tokens[ 2 ][ 'value' ] + tokens[ 4 ][ 'value' ];
-                }
-            }
-
-            done = true;
-        }
-
-
-        // - Diff
-
-        if( ! done && microlang_parse( tokens, [ '@', '=', '#', '-', '#' ] ) )
-        {
-            err = microlang_typecheck( execute, tokens, "n12" ); if( err !== '' ) return err + y1b;
-
-            if( execute )
-            {
-                if( tokens[ 2 ][ 'vtype' ] === 'int' )
-                {
-                    vars[ t0s ] = tokens[ 2 ][ 'value' ] - tokens[ 4 ][ 'value' ];
-
-                    if( vars[ t0s ] > 9223372036854775807 || vars[ t0s ] < -9223372036854775808 ) return "overflow: " + y1b;
-                }
-                else if( tokens[ 5 ][ 'vtype' ] === 'float' )
-                {
-                    vars[ t0s ] = tokens[ 2 ][ 'value' ] - tokens[ 4 ][ 'value' ];
-                }
-            }
-
-            done = true;
-        }
-
-
-        // * Mult
-
-        if( ! done && microlang_parse( tokens, [ '@', '=', '#', '*', '#' ] ) )
-        {
-            err = microlang_typecheck( execute, tokens, "n12" ); if( err !== '' ) return err + y1b;
-
-            if( execute )
-            {
-                if( tokens[ 2 ][ 'vtype' ] === 'int' )
-                {
-                    vars[ t0s ] = tokens[ 2 ][ 'value' ] * tokens[ 4 ][ 'value' ];
-
-                    if( vars[ t0s ] > 9223372036854775807 || vars[ t0s ] < -9223372036854775808 ) return "overflow: " + y1b;
-                }
-                else if( tokens[ 2 ][ 'vtype' ] === 'float' )
-                {
-                    vars[ t0s ] = tokens[ 2 ][ 'value' ] * tokens[ 4 ][ 'value' ];
-                }
-            }
-
-            done = true;
-        }
-
-
-        // / Div
-
-        if( ! done && microlang_parse( tokens, [ '@', '=', '#', '/', '#' ] ) )
-        {
-            err = microlang_typecheck( execute, tokens, "n12" ); if( err !== '' ) return err + y1b;
-
-            if( execute )
-            {
-                if( tokens[ 4 ][ 'value' ] === 0 ) return "division by zero: " + y1b;
-                if( tokens[ 2 ][ 'vtype' ] === 'int' )
-                {
-                    vars[ t0s ] = Math.floor( tokens[ 2 ][ 'value' ] / tokens[ 4 ][ 'value' ] );
-
-                    if( vars[ t0s ] > 9223372036854775807 || vars[ t0s ] < -9223372036854775808 ) return "overflow: " + y1b;
-
-                    vars[ t0s ] = parseInt( vars[ t0s ] );
-                }
-                else if( tokens[ 2 ][ 'vtype' ] === 'float' )
-                {
-                    vars[ t0s ] = tokens[ 2 ][ 'value' ] / tokens[ 4 ][ 'value' ];
-                }
-            }
-
-            done = true;
-        }
-
-
-        // % Modulo
-
-        if( ! done && microlang_parse( tokens, [ '@', '=', '#', '%', '#' ] ) )
-        {
-            err = microlang_typecheck( execute, tokens, "iII"  ); if( err !== '' ) return err + y1b;
-
-            if( execute )
-            {
-                if( tokens[ 4 ][ 'value' ] === 0 ) return "division by zero: " + y1b;
-                vars[ t0s ] = tokens[ 2 ][ 'value' ] % tokens[ 4 ][ 'value' ];
-            }
-
-            done = true;
-        }
-
-
-        // If Then [ Else ]
-
-        if( ! done && ( microlang_parse( tokens, [ 'if', '#', '~', '#', 'then', ':' ] ) || microlang_parse( tokens, [ 'if', '#', '~', '#', 'then', ':', 'else', ':' ] ) ) )
-        {
-            err = microlang_typecheck( execute, tokens, "*1" ); if( err !== '' ) return err + y1b;
-
-            if( tokens[ 5 ][ 'value' ] === null ) return "undefined label `" + tokens[ 5 ][ 'symbol' ] + "`: " + y1b;
-            if( tn === 8 && tokens[ 7 ][ 'value' ] === null ) return "undefined label `" + tokens[ 7 ][ 'value' ] + "`: " + y1b;
-
-            if( execute )
-            {
-                if( tokens[ 2 ][ 'symbol' ] === '==' )
-                {
-                    if( tokens[ 1 ][ 'value' ] == tokens[ 3 ][ 'value' ] )
-                    {
-                        y = tokens[ 5 ][ 'value' ];
-                        iter++;
-                        continue;
-                    }
-                    else
-                    {
-                        if( tn === 8 && tokens[ 7 ][ 'value' ] !== null )
-                        {
-                            y = tokens[ 7 ][ 'value' ];
-                            iter++;
-                            continue;
-                        }
-                        else
-                        {
-                            done = true;
-                        }
-                    }
-                }
-
-                if( tokens[ 2 ][ 'symbol' ] === '!=' )
-                {
-                    if( tokens[ 1 ][ 'value' ] != tokens[ 3 ][ 'value' ] )
-                    {
-                        y = tokens[ 5 ][ 'value' ];
-                        iter++;
-                        continue;
-                    }
-                    else
-                    {
-                        if( tn === 8 && tokens[ 7 ][ 'value' ] !== null )
-                        {
-                            y = tokens[ 7 ][ 'value' ];
-                            iter++;
-                            continue;
-                        }
-                        else
-                        {
-                            done = true;
-                        }
-                    }
-                }
-
-                if( tokens[ 2 ][ 'symbol' ] === '>' )
-                {
-                    if( tokens[ 1 ][ 'value' ] > tokens[ 3 ][ 'value' ] )
-                    {
-                        y = tokens[ 5 ][ 'value' ];
-                        iter++;
-                        continue;
-                    }
-                    else
-                    {
-                        if( tn === 8 && tokens[ 7 ][ 'value' ] !== null )
-                        {
-                            y = tokens[ 7 ][ 'value' ];
-                            iter++;
-                            continue;
-                        }
-                        else
-                        {
-                            done = true;
-                        }
-                    }
-                }
-
-                if( tokens[ 2 ][ 'symbol' ] === '<' )
-                {
-                    if( tokens[ 1 ][ 'value' ] < tokens[ 3 ][ 'value' ] )
-                    {
-                        y = tokens[ 5 ][ 'value' ];
-                        iter++;
-                        continue;
-                    }
-                    else
-                    {
-                        if( tn === 8 && tokens[ 7 ][ 'value' ] !== null )
-                        {
-                            y = tokens[ 7 ][ 'value' ];
-                            iter++;
-                            continue;
-                        }
-                        else
-                        {
-                            done = true;
-                        }
-                    }
-                }
-
-                if( tokens[ 2 ][ 'symbol' ] === '<=' )
-                {
-                    if( tokens[ 1 ][ 'value' ] <= tokens[ 3 ][ 'value' ] )
-                    {
-                        y = tokens[ 5 ][ 'value' ];
-                        iter++;
-                        continue;
-                    }
-                    else
-                    {
-                        if( tn === 8 && tokens[ 7 ][ 'value' ] !== null )
-                        {
-                            y = tokens[ 7 ][ 'value' ];
-                            iter++;
-                            continue;
-                        }
-                        else
-                        {
-                            done = true;
-                        }
-                    }
-                }
-
-                if( tokens[ 2 ][ 'symbol' ] === '>=' )
-                {
-                    if( tokens[ 1 ][ 'value' ] >= tokens[ 3 ][ 'value' ] )
-                    {
-                        y = tokens[ 5 ][ 'value' ];
-                        iter++;
-                        continue;
-                    }
-                    else
-                    {
-                        if( tn === 8 && tokens[ 7 ][ 'value' ] !== null )
-                        {
-                            y = tokens[ 7 ][ 'value' ];
-                            iter++;
-                            continue;
-                        }
-                        else
-                        {
-                            done = true;
-                        }
-                    }
-                }
-            }
-            else
-            {
-                done = true;
-            }
-        }
-
-        if( ! done )
-        {
-            return "syntax error: " + y1b;
-        }
-
-        y++;
-
-        if( y >= lines_count )
-        {
-            break;
-        }
-    }
-
-    delete vars[ 'cast_failed' ];
-
-    return "";
-}
+} () );
