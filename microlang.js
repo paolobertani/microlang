@@ -75,43 +75,43 @@ function microlang( code, vars, options )
     // porting the php interpreter to js
     //
 
-    var is_string = function( x )
+    function is_string( x )
     {
         return ( typeof( x ) === 'string' );
-    };
+    }
 
 
 
-    var is_int = function( x )
+    function is_int( x )
     {
         return ( typeof( x ) === 'number' && Number.isInteger( x ) === true );
-    };
+    }
 
 
 
-    var is_float = function( x )
+    function is_float( x )
     {
         return ( typeof( x ) === 'number' && Number.isInteger( x ) === false );
-    };
+    }
 
 
 
-    var count = function( x )
+    function count( x )
     {
         return x.length;
-    };
+    }
 
 
 
-    var strlen = function( x )
+    function strlen( x )
     {
         x = '' + x;
         return x.length;
-    };
+    }
 
 
 
-    var substr8 = function( x, s, n )
+    function substr8( x, s, n )
     {
         var e,l;
         x = '' + x;
@@ -127,13 +127,13 @@ function microlang( code, vars, options )
         }
         if( e <= s ) return "";
         return x.substring( s, e );
-    };
+    }
 
 
 
     // TODO: handle UTF-8 multibyte characters
 
-    var mb_substr8 = function( x, s, n )
+    function mb_substr8( x, s, n )
     {
         var e,l;
         x = '' + x;
@@ -149,13 +149,13 @@ function microlang( code, vars, options )
         }
         if( e <= s ) return "";
         return x.substring( s, e );
-    };
+    }
 
 
 
     // TODO: handle UTF-8 multibyte characters
 
-    var mb_strpos = function( t, s )
+    function mb_strpos( t, s )
     {
         var i;
 
@@ -170,21 +170,21 @@ function microlang( code, vars, options )
         }
 
         return i;
-    };
+    }
 
 
 
     // TODO: handle UTF-8 multibyte characters
 
-    var mb_strlen = function( x )
+    function mb_strlen( x )
     {
         x = '' + x;
         return x.length;
-    };
+    }
 
 
 
-    var strpos = function( t, s )
+    function strpos( t, s )
     {
         var i;
 
@@ -199,22 +199,22 @@ function microlang( code, vars, options )
         }
 
         return i;
-    };
+    }
 
 
 
-    var str_replace = function( s, r, t )
+    function str_replace( s, r, t )
     {
         s = '' + s;
         r = '' + r;
         t = '' + t;
 
         return t.split( s ).join( r );
-    };
+    }
 
 
 
-    var microlang_totext = function( t )
+    function microlang_totext( t )
     {
         var val;
 
@@ -244,11 +244,11 @@ function microlang( code, vars, options )
             val = "`" + val + "`";
             return val;
         }
-    };
+    }
 
 
 
-    var microlang_parse = function( tokens, expected )
+    function microlang_parse( tokens, expected )
     {
         var i,n,t,s,e;
 
@@ -274,11 +274,11 @@ function microlang( code, vars, options )
         }
 
         return true;
-    };
+    }
 
 
 
-    var microlang_typecheck = function( exe, tok, types )
+    function microlang_typecheck( exe, tok, types )
     {
         var i,n,c,t,v,y,isvar,t0,t1,tokens;
 
@@ -347,7 +347,7 @@ function microlang( code, vars, options )
         }
 
         return "";
-    };
+    }
 
 
 
@@ -362,11 +362,11 @@ function microlang( code, vars, options )
         {
             return "expected variable: ";
         }
-    };
+    }
 
 
 
-    var microlang_trim = function( txt )
+    function microlang_trim( txt )
     {
         var c,n;
 
@@ -404,11 +404,11 @@ function microlang( code, vars, options )
         }
 
         return txt;
-    };
+    }
 
 
 
-    var microlang_between = function( str, sm, em )
+    function microlang_between( str, sm, em )
     {
         var i1,i2,sml,eml;
 
@@ -475,11 +475,11 @@ function microlang( code, vars, options )
         }
 
         return str;
-    };
+    }
 
 
 
-    var microlang_splitline = function( line, error )
+    function microlang_splitline( line, error )
     {
         var parts,
             i,
@@ -855,7 +855,7 @@ function microlang( code, vars, options )
         }
 
         return parts;
-    };
+    }
 
 
 
