@@ -6,7 +6,7 @@
 // A javascript microlang interpreter
 //
 // microlang version 1.3
-// js intepreter version 1.3.4
+// js intepreter version 1.3.5
 //
 // Copyright (c) 2022, Paolo Bertani - Kalei S.r.l.
 //
@@ -75,6 +75,7 @@ var microlang = ( function()
             'substring',
             'position',
             'between',
+            'replace',
             'trim',
             'len',
             'int',

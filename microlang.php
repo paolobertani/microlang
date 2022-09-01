@@ -8,7 +8,7 @@
 // A php microlang interpreter
 //
 // microlang version 1.3
-// php interpreter version 1.3.3
+// php interpreter version 1.3.5
 //
 // Copyright (c) 2022, Paolo Bertani - Kalei S.r.l.
 //
@@ -45,6 +45,7 @@ function microlang( $code, &$vars, $options = null )
         'substring',
         'position',
         'between',
+        'replace',
         'trim',
         'len',
         'int',
@@ -512,7 +513,7 @@ function microlang( $code, &$vars, $options = null )
 
         if( ! $done && microlang_parse( $tokens, [ '@', '=', 'replace', '(', '#', ',', '#', ',', '#', ')' ] ) )
         {
-            $err = microlang_typecheck( $execute, $tokens, "sSII" ); if( $err !== '' ) return $err . $y1b;
+            $err = microlang_typecheck( $execute, $tokens, "sSSS" ); if( $err !== '' ) return $err . $y1b;
 
             if( $execute )
             {
