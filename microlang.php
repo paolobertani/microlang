@@ -1514,55 +1514,26 @@ function microlang_between( $str, $sm, $em )
 
     if( $sml === 0 )
     {
-        $i2 = mb_strpos( $str, $em );
-        if( $i2 === false )
-        {
-            return false;
-        }
-
-        return mb_substr8( $str, 0, $i2 );
+        $i1 = 0;
+    }
+    else
+    {
+        $i1 = mb_strpos( $str, $sm );
+        if( $i1 === false ) return false;
+        $i1 += $sml;
     }
 
     if( $eml === 0 )
     {
-        $i1 = mb_strpos( $str, $sm );
-
-        if( $i1 === false ) return false;
-
-        $str = mb_substr8( $str, $i1 + $sml );
-
-        while( true )
-        {
-            $i1 = mb_strpos( $str, $sm );
-            if( $i1 === false )
-            {
-                break;
-            }
-            else
-            {
-                $str = mb_substr8( $str, $i1 + $sml );
-            }
-        }
-
-        return $str;
+        $i2 = mb_strlen( $str );
     }
-
-    $i1 = mb_strpos( $str, $sm );
-
-    if( $i1 === false ) return false;
-
-    $i2 = mb_strpos( $str, $em, $i1 + $sml );
-
-    if( $i2 === false ) return false;
-
-    $str = mb_substr8( $str, $i1 + $sml, $i2 - $i1 - $sml );
-
-    while( true )
+    else
     {
-        $i1 = mb_strpos( $str, $sm );
-        if( $i1 === false ) break;
-        $str = mb_substr8( $str, $i1 + $sml );
+        $i2 = mb_strpos( $str, $em, $i1 );
+        if( $i2 === false ) return false;
     }
+
+    $str = mb_substr8( $str, $i1, $i2 - $i1 );
 
     return $str;
 }
