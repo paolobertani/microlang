@@ -1027,6 +1027,36 @@ require $clean;
 
 
 
+// Test 81
+$input = [];
+$code = "";
+$code.= "int i\n";
+$code.= "i = position( \"Foo © bar 𝌆 baz ☃ qux\", \"baz\" )";
+require $execute;
+do_assert( @$i === 12 );
+require $clean;
+
+
+
+// Test 82
+$input = [];
+$code = "";
+$code.= "string s\n";
+$code.= "s = replace( \"Foo © bar 𝌆 baz ☃ qux\", \"𝌆\", \"😀\" )";
+require $execute;
+do_assert( @$s === 'Foo © bar 😀 baz ☃ qux' );
+require $clean;
+
+
+
+// Test 83
+$input = [];
+$code = "";
+$code.= "int l\n";
+$code.= "l = len( \"Foo © bar 𝌆 baz ☃ qux\" )";
+require $execute;
+do_assert( @$l === 21 );
+require $clean;
 
 
 
