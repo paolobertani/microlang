@@ -592,7 +592,7 @@ require $clean;
 $input = [];
 $code = "";
 $code.= "string s\n";
-$code.= "s = between( \"foo   [[bar))   baz\", \"[[\", \"))\" )";
+$code.= "s = between( \"foo  @ [[bar))   baz\", \"[[\", \"))\" )";
 require $execute;
 do_assert( @$s === 'bar' );
 require $clean;
@@ -603,9 +603,9 @@ require $clean;
 $input = [];
 $code = "";
 $code.= "string s\n";
-$code.= "s = between( \"foo   [[bar[[boo))   baz\", \"[[\", \"))\" )";
+$code.= "s = between( \"foo   [[bar©[[boo)) ©©  baz\", \"[[\", \"))\" )";
 require $execute;
-do_assert( @$s === 'boo' );
+do_assert( @$s === 'bar©[[boo' );
 require $clean;
 
 
@@ -638,7 +638,7 @@ $code = "";
 $code.= "string s\n";
 $code.= "s = between( \"foo   [[bar[[))   baz\", \"[[\", \"\" )";
 require $execute;
-do_assert( @$s === '))   baz' );
+do_assert( @$s === 'bar[[))   baz' );
 require $clean;
 
 
@@ -690,10 +690,10 @@ require $clean;
 // Test 52
 $input = [];
 $code = "";
-$code.= "int s\n";
-$code.= "s = between( \"foo   [[bar))   baz\", \"[[\", \"))\" )";
+$code.= "string s\n";
+$code.= "s = between( \"   *bar* \", \"*\", \"*\" )";
 require $execute;
-do_assert( 'a' );
+do_assert( @$s === 'bar' );
 require $clean;
 
 
@@ -702,9 +702,9 @@ require $clean;
 $input = [];
 $code = "";
 $code.= "string s\n";
-$code.= "s = between( \"foo   11bar))   baz\", 11, \"))\" )";
+$code.= "s = between( \"   ©bar© \", \"©\", \"©\" )";
 require $execute;
-do_assert( 'a' );
+do_assert( @$s === 'bar' );
 require $clean;
 
 
@@ -712,8 +712,8 @@ require $clean;
 // Test 54
 $input = [];
 $code = "";
-$code.= "string s\n";
-$code.= "s = between( 10.4E2, \"[[\", \"))\" )";
+$code.= "int s\n";
+$code.= "s = between( \"foo   [[bar))   baz\", \"[[\", \"))\" )";
 require $execute;
 do_assert( 'a' );
 require $clean;
@@ -724,10 +724,9 @@ require $clean;
 $input = [];
 $code = "";
 $code.= "string s\n";
-$code.= "int i\n";
-$code.= "s = between( \"foo   [[bar))   baz\", \"[[\", \"))\", i )";
+$code.= "s = between( \"foo   11bar))   baz\", 11, \"))\" )";
 require $execute;
-do_assert( @$s === 'bar' && @$i === 1 );
+do_assert( 'a' );
 require $clean;
 
 
@@ -736,10 +735,9 @@ require $clean;
 $input = [];
 $code = "";
 $code.= "string s\n";
-$code.= "int i\n";
-$code.= "s = between( \"foo   [[bar[[boo))   baz\", \"[[\", \"))\", i )";
+$code.= "s = between( 10.4E2, \"[[\", \"))\" )";
 require $execute;
-do_assert( @$s === 'boo' && @$i === 1 );
+do_assert( 'a' );
 require $clean;
 
 
@@ -749,7 +747,7 @@ $input = [];
 $code = "";
 $code.= "string s\n";
 $code.= "int i\n";
-$code.= "s = between( \"foo   [[bar))   [[BOO)) baz\", \"[[\", \"))\", i )";
+$code.= "s = between( \"foo   [[bar))   baz\", \"[[\", \"))\", i )";
 require $execute;
 do_assert( @$s === 'bar' && @$i === 1 );
 require $clean;
@@ -761,9 +759,9 @@ $input = [];
 $code = "";
 $code.= "string s\n";
 $code.= "int i\n";
-$code.= "s = between( \"foo   [[bar))   ))baz\", \"\", \"))\", i )";
+$code.= "s = between( \"foo   [[bar[[boo))   baz\", \"[[\", \"))\", i )";
 require $execute;
-do_assert( @$s === 'foo   [[bar' && @$i === 1 );
+do_assert( @$s === 'bar[[boo' && @$i === 1 );
 require $clean;
 
 
@@ -773,14 +771,38 @@ $input = [];
 $code = "";
 $code.= "string s\n";
 $code.= "int i\n";
-$code.= "s = between( \"foo   [[bar[[))   baz\", \"[[\", \"\", i )";
+$code.= "s = between( \"foo   [[bar))   [[BOO)) baz\", \"[[\", \"))\", i )";
 require $execute;
-do_assert( @$s === '))   baz' && @$i === 1 );
+do_assert( @$s === 'bar' && @$i === 1 );
 require $clean;
 
 
 
 // Test 60
+$input = [];
+$code = "";
+$code.= "string s\n";
+$code.= "int i\n";
+$code.= "s = between( \"foo   [[bar))   ))baz\", \"\", \"))\", i )";
+require $execute;
+do_assert( @$s === 'foo   [[bar' && @$i === 1 );
+require $clean;
+
+
+
+// Test 61
+$input = [];
+$code = "";
+$code.= "string s\n";
+$code.= "int i\n";
+$code.= "s = between( \"foo   [[bar[[))   baz\", \"[[\", \"\", i )";
+require $execute;
+do_assert( @$s === 'bar[[))   baz' && @$i === 1 );
+require $clean;
+
+
+
+// Test 62
 $input = [];
 $code = "";
 $code.= "string s\n";
@@ -792,7 +814,7 @@ require $clean;
 
 
 
-// Test 61
+// Test 63
 $input = [];
 $code = "";
 $code.= "string s\n";
@@ -804,7 +826,7 @@ require $clean;
 
 
 
-// Test 62
+// Test 64
 $input = [];
 $code = "";
 $code.= "string s\n";
@@ -816,7 +838,7 @@ require $clean;
 
 
 
-// Test 63
+// Test 65
 $input = [];
 $code = "";
 $code.= "string s\n";
@@ -828,7 +850,7 @@ require $clean;
 
 
 
-// Test 64
+// Test 66
 $input = [];
 $code = "";
 $code.= "int s\n";
@@ -839,7 +861,7 @@ require $clean;
 
 
 
-// Test 65
+// Test 67
 $input = [];
 $code = "";
 $code.= "string s\n";
@@ -851,7 +873,7 @@ require $clean;
 
 
 
-// Test 66
+// Test 68
 $input = [];
 $code = "";
 $code.= "string s\n";
@@ -868,7 +890,7 @@ require $clean;
 
 
 
-// Test 67
+// Test 69
 $input = [];
 $code = "";
 $code.= "int i\n";
@@ -879,7 +901,7 @@ require $clean;
 
 
 
-// Test 68
+// Test 70
 $input = [];
 $code = "";
 $code.= "int i\n";
@@ -890,7 +912,7 @@ require $clean;
 
 
 
-// Test 69
+// Test 71
 $input = [];
 $code = "";
 $code.= "int i\n";
@@ -901,7 +923,7 @@ require $clean;
 
 
 
-// Test 70
+// Test 72
 $input = [];
 $code = "";
 $code.= "int i\n";
@@ -912,7 +934,7 @@ require $clean;
 
 
 
-// Test 71
+// Test 73
 $input = [];
 $code = "";
 $code.= "int i\n";
@@ -923,7 +945,7 @@ require $clean;
 
 
 
-// Test 72
+// Test 74
 $input = [];
 $code = "";
 $code.= "int i\n";
@@ -934,7 +956,7 @@ require $clean;
 
 
 
-// Test 73
+// Test 75
 $input = [];
 $code = "";
 $code.= "string i\n";
@@ -945,7 +967,7 @@ require $clean;
 
 
 
-// Test 74
+// Test 76
 $input = [];
 $code = "";
 $code.= "int i\n";
@@ -961,7 +983,7 @@ require $clean;
 
 
 
-// Test 75
+// Test 77
 $input = [];
 $code = "";
 $code.= "int i\n";
@@ -972,7 +994,7 @@ require $clean;
 
 
 
-// Test 76
+// Test 78
 $input = [];
 $code = "";
 $code.= "int i\n";
@@ -983,7 +1005,7 @@ require $clean;
 
 
 
-// Test 77
+// Test 79
 $input = [];
 $code = "";
 $code.= "string i\n";
@@ -994,7 +1016,7 @@ require $clean;
 
 
 
-// Test 78
+// Test 80
 $input = [];
 $code = "";
 $code.= "int i\n";
