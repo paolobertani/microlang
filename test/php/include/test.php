@@ -159,7 +159,7 @@ function enumerate_tests()
             $line = "// Test $index";
             $index++;
         }
-    }
+    } unset( $line );
     $code = implode( "\n", $code );
     file_put_contents( SCRP_PATH, $code );
     return $index - 1;
